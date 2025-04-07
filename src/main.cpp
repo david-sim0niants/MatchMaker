@@ -1,6 +1,11 @@
-#include <cstdlib>
+#include <QApplication>
 
-int main()
+#include "mainwindow.h"
+
+int main(int argc, char *argv[])
 {
-    return EXIT_SUCCESS;
+    QApplication app(argc, argv);
+    MainWindow w;
+    w.show();
+    return app.exec();
 }
