@@ -2,14 +2,14 @@
 
 #include "core/player.h"
 #include "core/timeline.h"
-#include "mock/core/game.h"
 #include "mock/core/waiter.h"
+#include "mock/core/game.h"
 
 namespace matchmaker::core::test {
 
-using testing::_;
-using testing::Return;
-using testing::NiceMock;
+using ::testing::_;
+using ::testing::Return;
+using ::testing::NiceMock;
 
 class PlayerTest : public ::testing::Test {
 protected:

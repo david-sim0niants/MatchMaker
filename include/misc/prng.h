@@ -15,7 +15,7 @@ public:
 
     template<typename Integral = int>
     inline std::enable_if_t<std::is_integral_v<Integral>, Integral>
-        gen(Integral min, Integral max) const
+        gen_uniform(Integral min, Integral max) const
     {
         return std::uniform_int_distribution<Integral>{min, max}(generator);
     }
@@ -24,7 +24,12 @@ public:
     inline std::enable_if_t<std::is_integral_v<Integral>, Integral>
         operator()(Integral min, Integral max) const
     {
-        return gen<Integral>(min, max);
+        return gen_uniform<Integral>(min, max);
+    }
+
+    inline std::mt19937 get_generator() const
+    {
+        return generator;
     }
 
 private:
