@@ -4,7 +4,8 @@ set(MOC_HEADERS mainwindow.h)
 list(TRANSFORM MOC_HEADERS PREPEND ${ROOT_INCLUDE_DIR}/)
 
 set(UI_SRCS mainwindow.cpp mainwindow.ui ${MOC_HEADERS})
-set(CORE_SRCS core/user.cpp core/player.cpp core/timeline_bound.cpp core/timeline.cpp)
+set(CORE_SRCS
+    core/user.cpp core/player.cpp core/timeline_bound.cpp core/timeline.cpp core/waiter.cpp)
 
 add_executable(${TARGET_NAME} main.cpp ${UI_SRCS} ${CORE_SRCS})
 

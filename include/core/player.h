@@ -35,9 +35,9 @@ private:
 
     User& user;
     misc::PRNG& prng;
+
     State state = State::Free;
     Time last_state_change_time;
-    Time next_state_change_time;
 
     Game *current_game = nullptr;
 

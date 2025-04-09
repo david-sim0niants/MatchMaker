@@ -11,10 +11,7 @@ public:
 };
 
 class SleepingWaiter : public Waiter {
-    void wait_for(Duration duration) const override
-    {
-        std::this_thread::sleep_for(duration);
-    }
+    void wait_for(Duration duration) const override;
 };
 
 }

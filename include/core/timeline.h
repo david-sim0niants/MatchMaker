@@ -23,10 +23,12 @@ public:
     }
 
 private:
+    template<typename T> using MinHeap = std::priority_queue<T, std::vector<T>, std::greater<T>>;
+
     void wait_until(Time time);
 
     Waiter& waiter;
-    std::priority_queue<std::pair<Time, Performer *>> events;
+    MinHeap<std::pair<Time, Performer *>> events;
     Time current_time;
 };
 

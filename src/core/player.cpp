@@ -1,7 +1,6 @@
 #include "core/player.h"
 
 #include <cassert>
-#include <iostream>
 
 namespace matchmaker::core {
 
