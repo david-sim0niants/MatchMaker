@@ -12,10 +12,10 @@ public:
     {
     }
 
+protected:
     void wait_for(Duration duration);
     void wait_until(Time time);
 
-protected:
     inline Time get_current_time() const noexcept
     {
         return timeline.get_current_time();

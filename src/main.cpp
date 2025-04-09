@@ -4,7 +4,6 @@
 #include "core/player.h"
 #include "core/waiter.h"
 #include "core/user.h"
-#include "misc/prng.h"
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -16,8 +15,7 @@ int main(int argc, char *argv[])
     matchmaker::core::User user("johndoe", "John", "Doe", {nullptr});
     matchmaker::core::SleepingWaiter sleeping_waiter;
     matchmaker::core::Timeline timeline(sleeping_waiter);
-    matchmaker::misc::PRNG prng;
-    matchmaker::core::Player player(user, timeline, prng);
+    matchmaker::core::Player player(user, timeline);
 
     auto fut_timeline_done = std::async([&timeline]{ timeline.run(); });
     int ret_code = app.exec();

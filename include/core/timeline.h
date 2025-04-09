@@ -15,6 +15,7 @@ public:
     void schedule_in(Duration duration, Performer& performer);
     void schedule_at(Time time, Performer& performer);
 
+    bool run_step();
     void run();
 
     inline Time get_current_time() const noexcept

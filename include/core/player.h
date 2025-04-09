@@ -4,7 +4,6 @@
 #include "core/timeline_bound.h"
 #include "core/timing.h"
 #include "core/user.h"
-#include "misc/prng.h"
 #include "misc/printing.h"
 
 namespace matchmaker::core {
@@ -15,7 +14,12 @@ public:
         Free = 0, Waiting, Busy
     };
 
-    Player(User& user, Timeline& timeline, misc::PRNG& prng);
+    Player(User& user, Timeline& timeline);
+
+    inline const User& get_user() const noexcept
+    {
+        return user;
+    }
 
     void perform() override;
     void play(Game& game);
@@ -26,6 +30,10 @@ public:
         return state;
     }
 
+    static constexpr Duration
+        free_time = 2s,
+        wait_time = 3s;
+
 private:
     void rest();
     void wait();
@@ -34,17 +42,9 @@ private:
     void change_state(State state);
 
     User& user;
-    misc::PRNG& prng;
-
     State state = State::Free;
     Time last_state_change_time;
-
     Game *current_game = nullptr;
-
-    static constexpr Duration
-        free_time = 2s,
-        min_wait_time = 2s,
-        max_wait_time = 3s;
 };
 
 class PlayerException : public Exception {

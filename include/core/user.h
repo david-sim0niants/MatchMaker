@@ -1,12 +1,12 @@
 #pragma once
 
+#include "game.h"
+
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace matchmaker::core {
-
-class Game;
 
 class User {
 public:

@@ -4,10 +4,9 @@
 
 namespace matchmaker::core {
 
-Player::Player(User& user, Timeline& timeline, misc::PRNG& prng) :
+Player::Player(User& user, Timeline& timeline) :
     TimelineBound(timeline),
     user(user),
-    prng(prng),
     last_state_change_time(timeline.get_current_time())
 {
     rest();
@@ -25,7 +24,7 @@ void Player::perform()
             wait();
         break;
     case State::Waiting:
-        if (current_time - last_state_change_time > min_wait_time)
+        if (current_time - last_state_change_time >= wait_time)
             rest();
     default:
         break;
@@ -54,8 +53,8 @@ void Player::rest()
 
 void Player::wait()
 {
+    // TODO: implement match request
     change_state(State::Waiting);
-    Duration wait_time {prng(min_wait_time.count(), max_wait_time.count())};
     wait_for(wait_time);
 }
 

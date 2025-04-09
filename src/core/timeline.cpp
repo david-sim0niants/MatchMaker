@@ -27,13 +27,21 @@ void Timeline::wait_until(Time time)
     current_time = time;
 }
 
+bool Timeline::run_step()
+{
+    if (events.empty())
+        return false;
+
+    auto [event_time, event_performer] = events.top(); events.pop();
+    wait_until(event_time);
+    event_performer->perform();
+    return true;
+}
+
 void Timeline::run()
 {
-    while (!events.empty()) {
-        auto [event_time, event_performer] = events.top(); events.pop();
-        wait_until(event_time);
-        event_performer->perform();
-    }
+    bool events_left;
+    while ((events_left = run_step()));
 }
 
 }
