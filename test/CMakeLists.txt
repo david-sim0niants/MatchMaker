@@ -16,7 +16,7 @@ enable_testing()
 
 set(TEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set(TEST_TARGETS core/player core/timeline)
+set(TEST_TARGETS core/player core/timeline core/match_arranger)
 set(TEST_SRC_FILES ${TEST_TARGETS})
 list(TRANSFORM TEST_SRC_FILES APPEND .cpp)
 list(APPEND TEST_SRC_FILES test_config.cpp)
