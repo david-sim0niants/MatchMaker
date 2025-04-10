@@ -4,41 +4,87 @@
 #include "player.h"
 #include "match.h"
 
+#include <memory>
 #include <map>
-#include <optional>
 #include <unordered_map>
 
 namespace matchmaker::core {
 
 class MatchArranger {
-    using MatchByRating = std::multimap<int, Match>;
+    using Rating = int64_t;
+
+    struct RatingKey {
+        Rating rating;
+        const Player *player;
+    };
+
+    struct RatingKeyCompare {
+        using is_transparent = void;
+
+        bool operator()(const RatingKey& lhs, const RatingKey& rhs) const noexcept
+        {
+            return std::tie(lhs.rating, lhs.player) < std::tie(rhs.rating, rhs.player);
+        }
+
+        bool operator()(const RatingKey& lhs, Rating rhs) const noexcept
+        {
+            return lhs.rating < rhs;
+        }
+
+        bool operator()(Rating lhs, const RatingKey& rhs) const noexcept
+        {
+            return lhs < rhs.rating;
+        }
+    };
+
+
+    using MatchByRating = std::map<RatingKey, Match *, RatingKeyCompare>;
     using MatchByRatingByGame = std::unordered_map<const Game *, MatchByRating>;
     using MatchByRatingIt = MatchByRating::iterator;
     using MatchByRatingByGameIt = MatchByRatingByGame::iterator;
 
+    struct MatchRequest {
+        Rating rating;
+        const Game& game;
+        std::unique_ptr<Match> inactive_match;
+
+        MatchRequest(Player& player, Rating rating, const Game& game) :
+            rating(rating), game(game), inactive_match(std::make_unique<Match>())
+        {
+            inactive_match->add_player(player);
+        }
+    };
+
 public:
-    std::optional<Match> find_or_request_match(Player& player, int player_rating, const Game& game);
+    std::unique_ptr<Match>
+        find_or_request_match(Player& player, Rating player_rating, const Game& game);
+
     void withdraw_match(const Player& player);
 
     inline bool has_arranged_match_for(const Player& player) const
     {
-        return get_player_game(player) != nullptr;
+        return get_match_request(player) != nullptr;
     }
 
-    const Game *get_player_game(const Player& player) const;
-
-    static constexpr int lower_rating_diff_thresh = 1,
-                        higher_rating_diff_thresh = 3;
+    static constexpr Rating lower_rating_diff_thresh = 1,
+                           higher_rating_diff_thresh = 3;
 
 private:
-    static MatchByRatingIt
-        try_find_fairest_match(int player_rating, MatchByRating& match_by_rating);
+    MatchRequest * get_match_request(const Player& player);
+    const MatchRequest * get_match_request(const Player& player) const;
 
-    void arrange_new_match(Player& player, int rating, const Game& game);
-    Match release_match(Player& player, const Game& game, MatchByRatingIt rating_it);
 
+    void arrange_new_match(Player& player, Rating rating, const Game& game);
+    std::unique_ptr<Match>
+        release_match(Player& player, const Game& game, MatchByRatingIt match_it);
+
+    void remove_match(const Player& player);
+    MatchRequest remove_match_request(const Player& player);
+
+    static MatchByRatingIt try_find_fairest_match(Rating rating, MatchByRating& match_by_rating);
+
+    std::unordered_map<const Player *, MatchRequest> match_request_by_player;
     MatchByRatingByGame match_by_rating_by_game;
-    std::unordered_map<const Player *, const Game *> game_by_player;
 };
 
 class MatchArrangerException : public Exception {
