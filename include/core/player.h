@@ -4,9 +4,12 @@
 #include "core/timeline_bound.h"
 #include "core/timing.h"
 #include "core/user.h"
+#include "misc/prng.h"
 #include "misc/printing.h"
 
 namespace matchmaker::core {
+
+class PlayerEndpoint;
 
 class Player : public TimelineBound {
 public:
@@ -14,7 +17,7 @@ public:
         Free = 0, Waiting, Busy
     };
 
-    Player(User& user, Timeline& timeline);
+    Player(User& user, Timeline& timeline, PlayerEndpoint& endpoint, misc::PRNG prng = {});
 
     inline const User& get_user() const noexcept
     {
@@ -38,13 +41,23 @@ private:
     void rest();
     void wait();
 
+    void select_game_and_request_match();
+
     void expect_state(State state);
     void change_state(State state);
 
     User& user;
+    PlayerEndpoint& endpoint;
+    misc::PRNG prng;
+
     State state = State::Free;
     Time last_state_change_time;
     Game *current_game = nullptr;
+};
+
+class PlayerEndpoint {
+public:
+    virtual void request_match(Player& player, Game& game) = 0;
 };
 
 class PlayerException : public Exception {

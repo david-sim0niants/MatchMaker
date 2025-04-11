@@ -6,19 +6,32 @@
 
 namespace matchmaker::misc {
 
-template<typename T> inline void print_to(std::ostream& os, const T& obj)
-{
-    os << "<unpresentable>";
-}
+template<typename T, typename Enable = void>
+struct Printing {
+    static inline void print_to(std::ostream& os, const T& obj)
+    {
+        os << "<unpresentable>";
+    }
+};
 
-template<typename T, std::enable_if_t<
-        std::is_integral_v<T> || std::is_floating_point_v<T> ||
-        std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view> ||
-        std::is_same_v<T, const char *> ||
-        std::is_array_v<T> && std::is_same_v<char, std::remove_extent_t<T>> > >
-void print_to(std::ostream& os, const T& obj)
+template<typename T>
+struct Printing<T, std::enable_if_t<
+    std::is_integral_v<T> || std::is_floating_point_v<T> ||
+    std::is_same_v<std::decay_t<T>, std::string> ||
+    std::is_same_v<std::decay_t<T>, std::string_view> ||
+    std::is_same_v<std::decay_t<T>, const char*> ||
+    std::is_same_v<std::decay_t<T>, char*> >
+> {
+    static inline void print_to(std::ostream& os, const T& obj)
+    {
+        os << obj;
+    }
+};
+
+template<typename T>
+inline void print_to(std::ostream& os, const T& obj)
 {
-    os << obj;
+    return Printing<T>::print_to(os, obj);
 }
 
 inline void print_to(std::ostream& os, const bool& b)
@@ -31,8 +44,8 @@ inline void print_to(std::ostream& os, unsigned char c)
     os << static_cast<unsigned int>(c);
 }
 
-template<typename... Ts, std::enable_if_t<(sizeof...(Ts) > 1)>>
-inline void print_to(std::ostream& os, const Ts&... objs)
+template<typename... Ts>
+std::enable_if_t<(sizeof...(Ts) > 1), void> print_to(std::ostream& os, const Ts&... objs)
 {
     (print_to(os, objs), ...);
 }
@@ -45,8 +58,8 @@ inline std::string stringify(const T& obj)
     return std::move(oss).str();
 }
 
-template<typename... T>
-inline std::string stringify(const T&... objs)
+template<typename... Ts>
+inline std::enable_if_t<(sizeof...(Ts) > 1), std::string> stringify(const Ts&... objs)
 {
     std::ostringstream oss;
     (print_to(oss, objs), ...);

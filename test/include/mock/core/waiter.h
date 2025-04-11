@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/waiter.h"
-
 #include "gmock/gmock.h"
+
+#include "core/waiter.h"
 
 namespace matchmaker::core::mock {
 

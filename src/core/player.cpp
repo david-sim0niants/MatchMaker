@@ -4,9 +4,11 @@
 
 namespace matchmaker::core {
 
-Player::Player(User& user, Timeline& timeline) :
+Player::Player(User& user, Timeline& timeline, PlayerEndpoint& endpoint, misc::PRNG prng) :
     TimelineBound(timeline),
     user(user),
+    endpoint(endpoint),
+    prng(prng),
     last_state_change_time(timeline.get_current_time())
 {
     rest();
@@ -53,9 +55,22 @@ void Player::rest()
 
 void Player::wait()
 {
-    // TODO: implement match request
     change_state(State::Waiting);
-    wait_for(wait_time);
+    select_game_and_request_match();
+
+    if (get_current_state() == State::Waiting)
+        wait_for(wait_time);
+}
+
+void Player::select_game_and_request_match()
+{
+    auto& preferred_games = user.get_preferred_games();
+    if (preferred_games.empty())
+        throw PlayerException( misc::stringify(
+                    "the user '", user.get_username(), "' has no preferred games"));
+
+    std::size_t game_idx = prng(std::size_t(), preferred_games.size());
+    endpoint.request_match(*this, *preferred_games[game_idx]);
 }
 
 void Player::expect_state(State state)
@@ -63,7 +78,7 @@ void Player::expect_state(State state)
     if (state != get_current_state())
         throw PlayerException( misc::stringify(
                     "invalid state - expected: ", state,
-                    "got: ", get_current_state() ) );
+                    ", got: ", get_current_state() ) );
 }
 
 void Player::change_state(State state)

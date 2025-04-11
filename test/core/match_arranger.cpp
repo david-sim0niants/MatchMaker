@@ -4,6 +4,7 @@
 #include "core/player.h"
 #include "core/timeline.h"
 #include "mock/core/game.h"
+#include "mock/core/player_endpoint.h"
 #include "mock/core/waiter.h"
 
 namespace matchmaker::core::test {
@@ -12,15 +13,16 @@ class MatchArrangerTest : public ::testing::Test {
 protected:
     mock::Game game;
     mock::Waiter waiter;
+    mock::PlayerEndpoint player_endpoint;
     Timeline timeline {waiter};
 
     User user_1 {"alice", "Alice", "Cooper", {&game}};
     User user_2 {"bob", "Bob", "Dylan", {&game}};
     User user_3 {"johndoe", "John", "Doe", {&game}};
 
-    Player player_1 {user_1, timeline};
-    Player player_2 {user_2, timeline};
-    Player player_3 {user_3, timeline};
+    Player player_1 {user_1, timeline, player_endpoint};
+    Player player_2 {user_2, timeline, player_endpoint};
+    Player player_3 {user_3, timeline, player_endpoint};
 
     MatchArranger match_arranger;
 };

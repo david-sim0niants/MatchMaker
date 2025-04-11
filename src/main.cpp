@@ -11,14 +11,14 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     MainWindow w;
     w.show();
+    //
+    // matchmaker::core::User user("johndoe", "John", "Doe", {nullptr});
+    // matchmaker::core::SleepingWaiter sleeping_waiter;
+    // matchmaker::core::Timeline timeline(sleeping_waiter);
+    // matchmaker::core::Player player(user, timeline);
 
-    matchmaker::core::User user("johndoe", "John", "Doe", {nullptr});
-    matchmaker::core::SleepingWaiter sleeping_waiter;
-    matchmaker::core::Timeline timeline(sleeping_waiter);
-    matchmaker::core::Player player(user, timeline);
-
-    auto fut_timeline_done = std::async([&timeline]{ timeline.run(); });
+    // auto fut_timeline_done = std::async([&timeline]{ timeline.run(); });
     int ret_code = app.exec();
-    fut_timeline_done.wait();
+    // fut_timeline_done.wait();
     return ret_code;
 }
