@@ -17,6 +17,7 @@ public:
     Subprocess& operator=(Subprocess&&);
 
     void swap(Subprocess& other);
+
     void kill();
     int wait();
 
@@ -29,6 +30,7 @@ public:
 
 private:
     void run(const char *path, char *const argv[]);
+    void kill_nothrow() noexcept;
 
     pid_t pid;
     int stdout_read_fd;

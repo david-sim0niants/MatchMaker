@@ -53,7 +53,7 @@ private:
 
 class MatchEndpoint {
 public:
-    virtual void notify_match_finished(Player *winner, Player *loser) = 0;
+    virtual void notify_match_finished(Match& match, GameWinner winner) = 0;
 };
 
 class MatchException : public Exception {

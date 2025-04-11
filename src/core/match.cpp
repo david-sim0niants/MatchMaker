@@ -22,33 +22,33 @@ void Match::start(MatchEndpoint& endpoint)
 {
     if (game_instance)
         throw MatchException("the match has already started");
+
     this->endpoint = &endpoint;
     game_instance = game.launch(*player_a, *player_b, this);
+
+    player_a->play(game);
+    player_b->play(game);
 }
 
 void Match::stop()
 {
     if (! game_instance)
         throw MatchException("the match has not started yet");
+
     game_instance->stop();
     game_instance = nullptr;
     endpoint = nullptr;
+
+    player_a->finish_playing();
+    player_b->finish_playing();
 }
 
 void Match::notify_finished(GameWinner winner)
 {
     assert(endpoint != nullptr);
-    switch (winner) {
-    case GameWinner::None:
-        endpoint->notify_match_finished(nullptr, nullptr);
-        break;
-    case GameWinner::PlayerA:
-        endpoint->notify_match_finished(player_a, player_b);
-        break;
-    case GameWinner::PlayerB:
-        endpoint->notify_match_finished(player_b, player_a);
-        break;
-    }
+    player_a->finish_playing();
+    player_b->finish_playing();
+    endpoint->notify_match_finished(*this, winner);
 }
 
 }

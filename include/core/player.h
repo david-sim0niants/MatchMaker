@@ -25,7 +25,7 @@ public:
     }
 
     void perform() override;
-    void play(Game& game);
+    void play(const Game& game);
     void finish_playing();
 
     inline State get_current_state() const noexcept
@@ -39,8 +39,8 @@ public:
 
 private:
     void rest();
-    void wait();
-
+    void withdraw_match_and_rest();
+    void select_game_and_request_match_and_wait();
     void select_game_and_request_match();
 
     void expect_state(State state);
@@ -52,12 +52,13 @@ private:
 
     State state = State::Free;
     Time last_state_change_time;
-    Game *current_game = nullptr;
+    const Game *current_game = nullptr;
 };
 
 class PlayerEndpoint {
 public:
     virtual void request_match(Player& player, Game& game) = 0;
+    virtual void withdraw_match(const Player& player) = 0;
 };
 
 class PlayerException : public Exception {

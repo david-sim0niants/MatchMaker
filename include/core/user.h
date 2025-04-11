@@ -38,7 +38,7 @@ public:
         return preferred_games;
     }
 
-    static constexpr std::size_t max_username_length = 15;
+    static constexpr std::size_t max_username_length = 16;
 
 private:
     char username[max_username_length + 1] {};

@@ -1,6 +1,7 @@
 set(TARGET_NAME match_maker_core)
 set(SRCS
-    user.cpp player.cpp timeline_bound.cpp timeline.cpp waiter.cpp match.cpp match_arranger.cpp
+    user.cpp player.cpp timeline_bound.cpp timeline.cpp waiter.cpp rating_map.cpp
+    match.cpp match_arranger.cpp match_mediator.cpp
     executable_game.cpp)
 
 add_library(${TARGET_NAME} INTERFACE)

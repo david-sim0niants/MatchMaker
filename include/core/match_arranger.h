@@ -11,8 +11,10 @@
 namespace matchmaker::core {
 
 class MatchArranger {
-    using Rating = int64_t;
+public:
+    using Rating = int;
 
+private:
     struct RatingKey {
         Rating rating;
         const Player *player;

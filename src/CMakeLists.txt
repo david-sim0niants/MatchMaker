@@ -5,7 +5,7 @@ list(TRANSFORM MOC_HEADERS PREPEND ${ROOT_INCLUDE_DIR}/)
 
 set(UI_SRCS mainwindow.cpp mainwindow.ui ${MOC_HEADERS})
 
-add_executable(${TARGET_NAME} main.cpp ${UI_SRCS} ${CORE_SRCS})
+add_executable(${TARGET_NAME} main.cpp ${UI_SRCS})
 
 set_target_properties(${TARGET_NAME} PROPERTIES
     OUTPUT_NAME match-maker

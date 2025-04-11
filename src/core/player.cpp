@@ -23,17 +23,17 @@ void Player::perform()
     switch (state) {
     case State::Free:
         if (current_time - last_state_change_time >= free_time)
-            wait();
+            select_game_and_request_match_and_wait();
         break;
     case State::Waiting:
         if (current_time - last_state_change_time >= wait_time)
-            rest();
+            withdraw_match_and_rest();
     default:
         break;
     }
 }
 
-void Player::play(Game& game)
+void Player::play(const Game& game)
 {
     expect_state(State::Waiting);
     current_game = &game;
@@ -53,7 +53,13 @@ void Player::rest()
     wait_for(free_time);
 }
 
-void Player::wait()
+void Player::withdraw_match_and_rest()
+{
+    endpoint.withdraw_match(*this);
+    rest();
+}
+
+void Player::select_game_and_request_match_and_wait()
 {
     change_state(State::Waiting);
     select_game_and_request_match();
@@ -69,7 +75,7 @@ void Player::select_game_and_request_match()
         throw PlayerException( misc::stringify(
                     "the user '", user.get_username(), "' has no preferred games"));
 
-    std::size_t game_idx = prng(std::size_t(), preferred_games.size());
+    std::size_t game_idx = prng(std::size_t(), preferred_games.size() - 1);
     endpoint.request_match(*this, *preferred_games[game_idx]);
 }
 

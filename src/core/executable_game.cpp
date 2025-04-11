@@ -76,7 +76,8 @@ public:
 private:
     void notify_exit(int exit_code) override
     {
-        observer->notify_finished(parse_result());
+        if (observer)
+            observer->notify_finished(parse_result());
     }
 
     void notify_exit_fail() override

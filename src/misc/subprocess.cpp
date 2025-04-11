@@ -63,7 +63,7 @@ Subprocess::Subprocess(const char *path, char *const argv[], SubprocessObserver 
 Subprocess::~Subprocess()
 {
     if (running)
-        kill();
+        kill_nothrow();
     close(stdout_read_fd);
 }
 
@@ -86,6 +86,33 @@ void Subprocess::swap(Subprocess& other)
     std::swap(running, other.running);
 }
 
+void Subprocess::kill()
+{
+    if (! running)
+        throw SubprocessException("subprocess is already dead", errno);
+    if (::kill(pid, SIGKILL) < 0)
+        throw SubprocessException("kill() failed", errno);
+    running = false;
+}
+
+std::string Subprocess::read_stdout_full() const
+{
+    return read_full(stdout_read_fd);
+}
+
+int Subprocess::wait()
+{
+    int status;
+    if (waitpid(pid, &status, 0) < 0)
+        throw SubprocessException("waitpid() failed", errno);
+
+    running = false;
+    if (WIFEXITED(status))
+        return WEXITSTATUS(status);
+    else
+        return -1;
+}
+
 void Subprocess::run(const char *path, char *const argv[])
 {
     auto [pipe_read, pipe_write] = open_pipe();
@@ -103,31 +130,10 @@ void Subprocess::run(const char *path, char *const argv[])
     running = true;
 }
 
-void Subprocess::kill()
+void Subprocess::kill_nothrow() noexcept
 {
-    if (! running)
-        throw SubprocessException("subprocess is already dead", errno);
-    if (::kill(pid, SIGKILL) < 0)
-        throw SubprocessException("kill() failed", errno);
+    ::kill(pid, SIGKILL);
     running = false;
-}
-
-int Subprocess::wait()
-{
-    int status;
-    if (waitpid(pid, &status, 0) < 0)
-        throw SubprocessException("waitpid() failed", errno);
-
-    running = false;
-    if (WIFEXITED(status))
-        return WEXITSTATUS(status);
-    else
-        return -1;
-}
-
-std::string Subprocess::read_stdout_full() const
-{
-    return read_full(stdout_read_fd);
 }
 
 SubprocessException::SubprocessException(std::string_view message, int error_code)
