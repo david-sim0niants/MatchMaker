@@ -45,11 +45,15 @@ class MatchArranger {
 
     struct MatchRequest {
         Rating rating;
-        const Game& game;
         std::unique_ptr<Match> inactive_match;
 
+        inline const Game& get_game()
+        {
+            return inactive_match->get_game();
+        }
+
         MatchRequest(Player& player, Rating rating, const Game& game) :
-            rating(rating), game(game), inactive_match(std::make_unique<Match>())
+            rating(rating), inactive_match(std::make_unique<Match>(game))
         {
             inactive_match->add_player(player);
         }

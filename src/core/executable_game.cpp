@@ -19,16 +19,16 @@ static std::pair<std::string_view, std::string_view>
 
     r = std::find_if_not(r, rend, is_space);
 
-    auto word1_end = r;
-    auto word1_start = std::find_if(word1_end, rend, is_space);
-
-    auto word2_end = std::find_if_not(word1_start, rend, is_space);
+    auto word2_end = r;
     auto word2_start = std::find_if(word2_end, rend, is_space);
+
+    auto word1_end = std::find_if_not(word2_start, rend, is_space);
+    auto word1_start = std::find_if(word1_end, rend, is_space);
 
     std::string_view w1(&*word1_start, word1_end - word1_start);
     std::string_view w2(&*word2_start, word2_end - word2_start);
 
-    return {w2, w1};
+    return {w1, w2};
 }
 
 static misc::Subprocess make_subprocess(
@@ -55,6 +55,11 @@ public:
         subprocess(make_subprocess(exec_path, exec_name, player_a_name, player_b_name, this)),
         observer(observer)
     {
+    }
+
+    ~ExecutableGameInstance()
+    {
+        stop();
     }
 
     virtual void stop() override

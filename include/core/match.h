@@ -2,24 +2,19 @@
 
 #include "exception.h"
 #include "core/player.h"
+#include "core/game.h"
 
 namespace matchmaker::core {
 
-class MatchException : public Exception {
-public:
-    using Exception::Exception;
-};
+class MatchEndpoint;
 
-class Match {
+class Match : GameInstanceObserver {
 public:
-    void add_player(Player& player)
+    explicit Match(const Game& game);
+
+    inline const Game& get_game() const noexcept
     {
-        if (! player_a)
-            player_a = &player;
-        else if (! player_b)
-            player_b = &player;
-        else
-            throw MatchException("both players are present, no need for more");
+        return game;
     }
 
     inline Player *get_player_a() const noexcept
@@ -42,8 +37,28 @@ public:
         player_a = player_b = nullptr;
     }
 
+    void add_player(Player& player);
+
+    void start(MatchEndpoint& endpoint);
+    void stop();
+
 private:
+    void notify_finished(GameWinner winner) override;
+
+    const Game& game;
     Player *player_a = nullptr, *player_b = nullptr;
+    MatchEndpoint *endpoint;
+    std::unique_ptr<GameInstance> game_instance = nullptr;
+};
+
+class MatchEndpoint {
+public:
+    virtual void notify_match_finished(Player *winner, Player *loser) = 0;
+};
+
+class MatchException : public Exception {
+public:
+    using Exception::Exception;
 };
 
 }

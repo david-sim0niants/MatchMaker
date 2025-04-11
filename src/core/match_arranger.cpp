@@ -104,7 +104,7 @@ std::unique_ptr<Match> MatchArranger::release_match(
 void MatchArranger::remove_match(const Player& player)
 {
     MatchRequest match_request = remove_match_request(player);
-    match_by_rating_by_game[&match_request.game].erase({match_request.rating, &player});
+    match_by_rating_by_game[&match_request.get_game()].erase({match_request.rating, &player});
 }
 
 MatchArranger::MatchRequest MatchArranger::remove_match_request(const Player& player)
