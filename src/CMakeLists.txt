@@ -12,6 +12,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 target_include_directories(${TARGET_NAME} PRIVATE ${ROOT_INCLUDE_DIR})
-target_link_libraries(${TARGET_NAME} PRIVATE match_maker_core Qt6::Widgets)
+target_link_libraries(${TARGET_NAME} PRIVATE match_maker_core match_maker_misc Qt6::Widgets)
 
 add_subdirectory(core)
+add_subdirectory(misc)

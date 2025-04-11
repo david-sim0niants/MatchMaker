@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/exception.h"
+#include "exception.h"
 #include "core/player.h"
 
 namespace matchmaker::core {

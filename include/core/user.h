@@ -13,9 +13,14 @@ public:
     User(std::string_view username, std::string&& name, std::string&& last_name,
          std::vector<Game *>&& preferred_games);
 
-    inline std::string_view get_username() const noexcept
+    inline const char *get_username() const noexcept
     {
-        return std::string_view(username, username_length);
+        return username;
+    }
+
+    inline std::size_t get_username_length() const noexcept
+    {
+        return username_length;
     }
 
     inline std::string_view get_name() const noexcept
@@ -33,10 +38,10 @@ public:
         return preferred_games;
     }
 
-    static constexpr std::size_t max_username_length = 16;
+    static constexpr std::size_t max_username_length = 15;
 
 private:
-    char username[max_username_length] {};
+    char username[max_username_length + 1] {};
     std::size_t username_length;
     std::string name, last_name;
     std::vector<Game *> preferred_games;

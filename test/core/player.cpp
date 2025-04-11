@@ -17,7 +17,6 @@ protected:
     void SetUp() override
     {
         ON_CALL(mock_waiter, wait_for(_)).WillByDefault(Return());
-        ON_CALL(mock_game, run(_, _)).WillByDefault(Return(Game::Winner::None));
     }
 
     NiceMock<mock::Waiter> mock_waiter;
