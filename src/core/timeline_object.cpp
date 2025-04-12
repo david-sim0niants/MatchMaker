@@ -4,12 +4,38 @@ namespace matchmaker::core {
 
 void TimelineObject::wait_for(Duration duration)
 {
-    Timeline::call_in(duration, [this]() { exec(); });
+    EventHandle event = Timeline::call_in(duration,
+        [this](EventHandle handle)
+        {
+            exec();
+            awaiting_events.erase(
+                    awaiting_events.begin(),
+                    awaiting_events.lower_bound(handle.get_time())
+                );
+        }
+    );
+    awaiting_events.emplace(event.get_time(), event);
 }
 
 void TimelineObject::wait_until(Time time)
 {
-    Timeline::call_at(time, [this]() { exec(); });
+    EventHandle event = Timeline::call_at(time,
+        [this](EventHandle handle)
+        {
+            exec();
+            awaiting_events.erase(
+                    awaiting_events.begin(),
+                    awaiting_events.lower_bound(handle.get_time())
+                );
+        }
+    );
+    awaiting_events.emplace(event.get_time(), event);
+}
+
+void TimelineObject::cancel_awaiting_events()
+{
+    for (auto& [_, event_handle] : awaiting_events)
+        Timeline::cancel(event_handle);
 }
 
 }

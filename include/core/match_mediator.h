@@ -17,7 +17,7 @@ public:
 
     void request_match(Player& player, Game& game) override;
     void withdraw_match(const Player& player) override;
-    void notify_match_finished(Match& match, GameWinner winner) override;
+    void notify_match_finished(Match& match, Player *winner) override;
     Timeline& get_timeline() const noexcept override;
 
 private:

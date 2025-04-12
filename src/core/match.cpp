@@ -30,13 +30,43 @@ void Match::start(MatchEndpoint& endpoint)
     player_b->play(*this);
 }
 
-void Match::stop()
+void Match::stop(Player *leaving_player)
 {
     if (! game_instance)
-        throw MatchException("the match has not started yet");
+        throw MatchException("cannot stop, the match has not started yet");
 
     game_instance->stop();
+
+    if (leaving_player != nullptr) {
+        if (leaving_player == get_player_a())
+            finish(player_b);
+        else
+            finish(player_a);
+    } else {
+        finish(nullptr);
+    }
+}
+
+void Match::finish(GameWinner winner)
+{
+    switch (winner) {
+    case GameWinner::None:
+        finish(nullptr);
+        break;
+    case GameWinner::PlayerA:
+        finish(get_player_a());
+        break;
+    case GameWinner::PlayerB:
+        finish(get_player_b());
+        break;
+    }
+}
+
+void Match::finish(Player *winner_player)
+{
+    MatchEndpoint *endpoint = this->endpoint;
     finalize();
+    endpoint->notify_match_finished(*this, winner_player);
 }
 
 void Match::finalize()
@@ -46,13 +76,6 @@ void Match::finalize()
 
     player_a->finish_playing();
     player_b->finish_playing();
-}
-
-void Match::finish(GameWinner winner)
-{
-    MatchEndpoint *endpoint = this->endpoint;
-    finalize();
-    endpoint->notify_match_finished(*this, winner);
 }
 
 void Match::notify_finished(GameWinner winner)

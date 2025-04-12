@@ -83,13 +83,34 @@ bool Timeline::run_once_internal()
     wait_until(event_time);
 
     if (current_time >= event_time) {
-        EventCallback& event_callback = events.begin()->second;
-        event_callback();
-        events.erase(events.begin());
         current_time = event_time;
+
+        EventHandle event_handle{events.begin()->first};
+        EventCallback& event_callback = events.begin()->second;
+        call_callback(event_callback, event_handle);
+
+        events.erase(events.begin());
     }
 
     return true;
+}
+
+void Timeline::call_callback(EventCallback& callback, EventHandle& handle)
+{
+    struct Visitor {
+        void operator()(std::function<void()>& f)
+        {
+            f();
+        }
+
+        void operator()(std::function<void(EventHandle)>& f)
+        {
+            f(handle);
+        }
+
+        EventHandle& handle;
+    };
+    std::visit(Visitor{handle}, callback);
 }
 
 Timeline *Timeline::get_current() noexcept
@@ -121,8 +142,7 @@ EventHandle Timeline::schedule_at(Time time, EventCallback&& event_callback)
 {
     assert(time >= current_time);
 
-    EventHandle event_handle;
-    event_handle.event = { .time = time, .id = 0};
+    EventHandle event_handle {{ .time = time, .id = 0}};
 
     auto event_it = events.upper_bound(time);
     if (event_it != events.begin() && (--event_it)->first.time == time) {
@@ -135,7 +155,9 @@ EventHandle Timeline::schedule_at(Time time, EventCallback&& event_callback)
 
 void Timeline::cancel_event(EventHandle event_handle)
 {
-    events.erase(event_handle.event);
+    auto event_it = events.find(event_handle.event);
+    if (event_it != events.end())
+        events.erase(event_it);
 }
 
 void Timeline::wait_until(Time time)

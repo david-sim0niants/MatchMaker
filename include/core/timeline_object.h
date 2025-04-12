@@ -2,6 +2,8 @@
 
 #include "core/timeline.h"
 
+#include <map>
+
 namespace matchmaker::core {
 
 class TimelineObject {
@@ -14,7 +16,12 @@ protected:
         return Timeline::get_current_time();
     }
 
+    void cancel_awaiting_events();
+
     virtual void exec() = 0;
+
+private:
+    std::map<Time, EventHandle> awaiting_events;
 };
 
 }

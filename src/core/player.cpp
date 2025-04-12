@@ -21,6 +21,16 @@ void Player::init()
     rest();
 }
 
+void Player::deinit()
+{
+    if (! Timeline::running())
+        throw PlayerException("attempt to deinitialize a player outside timeline");
+    cancel_awaiting_events();
+    if (current_match)
+        leave_match();
+    change_state(State::Created);
+}
+
 void Player::play(Match& match)
 {
     expect_state(State::Waiting);
@@ -86,6 +96,11 @@ void Player::select_game_and_request_match()
 
     std::size_t game_idx = prng(std::size_t(), preferred_games.size() - 1);
     endpoint.request_match(*this, *preferred_games[game_idx]);
+}
+
+void Player::leave_match()
+{
+    current_match->stop(this);
 }
 
 void Player::expect_state(State state)

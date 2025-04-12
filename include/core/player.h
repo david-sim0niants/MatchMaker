@@ -25,6 +25,8 @@ public:
     }
 
     void init();
+    void deinit();
+
     void play(Match& match);
     void finish_playing();
 
@@ -44,6 +46,7 @@ private:
     void withdraw_match_and_rest();
     void select_game_and_request_match_and_wait();
     void select_game_and_request_match();
+    void leave_match();
 
     void expect_state(State state);
     void change_state(State state);

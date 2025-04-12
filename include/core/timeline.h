@@ -7,6 +7,7 @@
 #include <map>
 #include <mutex>
 #include <stack>
+#include <variant>
 
 namespace matchmaker::core {
 
@@ -14,8 +15,8 @@ class Timeline {
     using EventID = uint64_t;
 
     struct Event {
-        Time time;
-        EventID id;
+        Time time {};
+        EventID id = 0;
     };
 
     struct EventCompare {
@@ -38,12 +39,26 @@ class Timeline {
     };
 
 public:
-    using EventCallback = std::function<void()>;
-
     class EventHandle {
         friend class Timeline;
+
+    public:
+        EventHandle() = default;
+
+        inline Time get_time() const noexcept
+        {
+            return event.time;
+        }
+
+    private:
+        EventHandle(Event event) : event(event) {}
         Event event;
     };
+
+    using EventCallback = std::variant<
+        std::function<void()>,
+        std::function<void(EventHandle handle)>
+    >;
 
     explicit Timeline(Waiter& waiter, Time start_time = 0ms);
     ~Timeline();
@@ -67,6 +82,7 @@ public:
 
 private:
     bool run_once_internal();
+    static void call_callback(EventCallback& callback, EventHandle& handle);
 
     static Timeline *get_current() noexcept;
     bool is_current() const noexcept;

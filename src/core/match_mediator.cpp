@@ -23,19 +23,12 @@ void MatchMediator::withdraw_match(const Player& player)
     match_arranger.withdraw_match(player);
 }
 
-void MatchMediator::notify_match_finished(Match& match, GameWinner winner)
+void MatchMediator::notify_match_finished(Match& match, Player *winner)
 {
-    Player *winner_player = nullptr;
-    if (winner == GameWinner::PlayerA)
-        winner_player = match.get_player_a();
-    else if (winner == GameWinner::PlayerB)
-        winner_player = match.get_player_b();
-
-    if (winner_player) {
+    if (winner) {
         const Game& game = match.get_game();
-        increment_player_rating_for_game(game, *winner_player);
+        increment_player_rating_for_game(game, *winner);
     }
-
     remove_match(match);
 }
 
