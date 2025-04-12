@@ -5,7 +5,7 @@
 
 namespace matchmaker::core {
 
-Player::Player(User& user, PlayerEndpoint& endpoint, misc::PRNG prng) :
+Player::Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG prng) :
     user(user),
     endpoint(endpoint),
     prng(prng),

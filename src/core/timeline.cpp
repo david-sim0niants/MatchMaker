@@ -28,6 +28,16 @@ std::pair<Time, bool> Timeline::run_once()
     return std::make_pair(current_time, run_once_internal());
 }
 
+std::pair<Time, bool> Timeline::run_till_next_time()
+{
+    Time prev_time = current_time;
+    bool needs_to_run;
+    do {
+        needs_to_run = run_once_internal();
+    } while (prev_time == current_time && needs_to_run);
+    return std::make_pair(current_time, needs_to_run);
+}
+
 Time Timeline::run()
 {
     bool needs_to_run;

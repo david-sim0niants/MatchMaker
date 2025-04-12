@@ -72,6 +72,7 @@ public:
     void join(EventCallback&& event_callback);
 
     std::pair<Time, bool> run_once();
+    std::pair<Time, bool> run_till_next_time();
     Time run();
 
     static bool running() noexcept;

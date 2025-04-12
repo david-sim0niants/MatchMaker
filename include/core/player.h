@@ -17,7 +17,7 @@ public:
         Created, Free, Waiting, Busy
     };
 
-    Player(User& user, PlayerEndpoint& endpoint, misc::PRNG prng = {});
+    Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG prng = {});
 
     inline const User& get_user() const noexcept
     {
@@ -51,7 +51,7 @@ private:
     void expect_state(State state);
     void change_state(State state);
 
-    User& user;
+    const User& user;
     PlayerEndpoint& endpoint;
     misc::PRNG prng;
 

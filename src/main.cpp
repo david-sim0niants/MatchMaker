@@ -2,11 +2,18 @@
 #include <future>
 
 #include "core/cv_waiter.h"
-#include "core/match_mediator.h"
-#include "core/player.h"
-#include "core/rating_map.h"
+#include "core/match_engine.h"
 #include "core/user.h"
 #include "mainwindow.h"
+
+using namespace matchmaker;
+
+class UserRatingObserver : core::UserRatingObserver {
+public:
+    void notify_rating_change(const core::Game& game, const core::User& user, int rating)
+    {
+    }
+};
 
 int main(int argc, char *argv[])
 {
@@ -14,19 +21,17 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    using namespace matchmaker;
+    core::CVWaiter waiter;
+    core::User johndoe("johndoe", "John", "Doe", {nullptr});
+    core::User alice("alice", "Alice", "Cooper", {nullptr});
 
-    core::User user("johndoe", "John", "Doe", {nullptr});
-    core::CVWaiter cv_waiter;
-    core::Timeline timeline(cv_waiter);
-    core::RatingMap rating_map;
-    core::MatchMediator mediator(rating_map, timeline);
-    core::Player player {user, mediator};
+    core::MatchEngine match_engine(waiter);
 
-    timeline.join([&]{ player.init(); });
+    match_engine.add_user(johndoe);
+    match_engine.add_user(alice);
+    match_engine.run();
 
-    auto fut_timeline_done = std::async([&timeline]{ timeline.run(); });
-    int ret_code = app.exec();
-    fut_timeline_done.get();
-    return ret_code;
+    // int ret_code = app.exec();
+    // return ret_code;
+    return 0;
 }

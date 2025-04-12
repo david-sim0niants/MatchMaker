@@ -13,6 +13,8 @@ class Game {
 public:
     virtual ~Game() = default;
 
+    virtual std::string_view get_name() const noexcept = 0;
+
     virtual std::unique_ptr<GameInstance> launch(
             const Player& player_a,
             const Player& player_b,

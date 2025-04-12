@@ -8,6 +8,7 @@ Duration CVWaiter::wait_for(Duration duration)
 {
     auto start_time = std::chrono::steady_clock::now();
     std::unique_lock lock{mutex};
+    waiting = true;
     cv.wait_for(lock, duration, [this] { return not waiting; });
     auto end_time = std::chrono::steady_clock::now();
     return std::chrono::duration_cast<Duration>(end_time - start_time);
