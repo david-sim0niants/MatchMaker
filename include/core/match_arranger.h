@@ -39,7 +39,6 @@ private:
         }
     };
 
-
     using MatchByRating = std::map<RatingKey, Match *, RatingKeyCompare>;
     using MatchByRatingByGame = std::unordered_map<const Game *, MatchByRating>;
     using MatchByRatingIt = MatchByRating::iterator;

@@ -32,17 +32,14 @@ public:
         return player_a && player_b;
     }
 
-    inline void reset() noexcept
-    {
-        player_a = player_b = nullptr;
-    }
-
     void add_player(Player& player);
 
     void start(MatchEndpoint& endpoint);
     void stop();
 
 private:
+    void finalize();
+    void finish(GameWinner winner);
     void notify_finished(GameWinner winner) override;
 
     const Game& game;
@@ -54,6 +51,7 @@ private:
 class MatchEndpoint {
 public:
     virtual void notify_match_finished(Match& match, GameWinner winner) = 0;
+    virtual Timeline& get_timeline() const noexcept = 0;
 };
 
 class MatchException : public Exception {

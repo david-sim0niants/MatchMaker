@@ -26,8 +26,8 @@ void Match::start(MatchEndpoint& endpoint)
     this->endpoint = &endpoint;
     game_instance = game.launch(*player_a, *player_b, this);
 
-    player_a->play(game);
-    player_b->play(game);
+    player_a->play(*this);
+    player_b->play(*this);
 }
 
 void Match::stop()
@@ -36,6 +36,11 @@ void Match::stop()
         throw MatchException("the match has not started yet");
 
     game_instance->stop();
+    finalize();
+}
+
+void Match::finalize()
+{
     game_instance = nullptr;
     endpoint = nullptr;
 
@@ -43,12 +48,17 @@ void Match::stop()
     player_b->finish_playing();
 }
 
+void Match::finish(GameWinner winner)
+{
+    MatchEndpoint *endpoint = this->endpoint;
+    finalize();
+    endpoint->notify_match_finished(*this, winner);
+}
+
 void Match::notify_finished(GameWinner winner)
 {
     assert(endpoint != nullptr);
-    player_a->finish_playing();
-    player_b->finish_playing();
-    endpoint->notify_match_finished(*this, winner);
+    endpoint->get_timeline().join([this, winner]() { finish(winner); });
 }
 
 }

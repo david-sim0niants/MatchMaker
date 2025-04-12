@@ -2,6 +2,7 @@
 
 #include "core/player.h"
 #include "core/timeline.h"
+#include "core/match.h"
 #include "mock/core/player_endpoint.h"
 #include "mock/core/waiter.h"
 #include "mock/core/game.h"
@@ -9,23 +10,28 @@
 namespace matchmaker::core::test {
 
 using ::testing::_;
-using ::testing::Return;
 using ::testing::NiceMock;
 
 class PlayerTest : public ::testing::Test {
 protected:
     void SetUp() override
     {
-        ON_CALL(mock_waiter, wait_for(_)).WillByDefault(Return());
+        ON_CALL(mock_waiter, wait_for(_)).WillByDefault(
+                [](Duration duration){ return duration; }
+            );
+        timeline.join([this]{ player.init(); });
+        timeline.run_once();
     }
 
     NiceMock<mock::Waiter> mock_waiter;
     NiceMock<mock::Game> mock_game;
     NiceMock<mock::PlayerEndpoint> player_endpoint;
+    Match mock_match {mock_game};
 
     User user {"johndoe", "John", "Doe", {&mock_game}};
     Timeline timeline {mock_waiter, 0ms};
-    Player player {user, timeline, player_endpoint};
+
+    Player player {user, player_endpoint};
 };
 
 TEST_F(PlayerTest, PlayerStartsFree)
@@ -35,50 +41,55 @@ TEST_F(PlayerTest, PlayerStartsFree)
 
 TEST_F(PlayerTest, PlayerStartsWaitingAfterBeingFree)
 {
-    timeline.run_step();
-    EXPECT_EQ(timeline.get_current_time(), Player::free_time);
+    auto [curr_time, needs_run] = timeline.run_once();
+    EXPECT_EQ(curr_time.count(), Player::free_time.count());
     ASSERT_EQ(player.get_current_state(), Player::State::Waiting);
 }
 
 TEST_F(PlayerTest, PlayerGoesBackToRestingAfterWaitingForTooLong)
 {
-    timeline.run_step();
-    timeline.run_step();
-    EXPECT_EQ(timeline.get_current_time(), Player::free_time + Player::wait_time);
+    timeline.run_once();
+    auto [curr_time, needs_run] = timeline.run_once();
+    EXPECT_EQ(curr_time.count(), (Player::free_time + Player::wait_time).count());
     ASSERT_EQ(player.get_current_state(), Player::State::Free);
 }
 
 TEST_F(PlayerTest, PlayerBecomesBusyWhenPlaying)
 {
-    timeline.run_step();
+    timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Waiting);
 
-    player.play(mock_game);
+    timeline.join([&]{ player.play(mock_match); });
+    timeline.run_once();
     ASSERT_EQ(player.get_current_state(), Player::State::Busy);
 }
 
 TEST_F(PlayerTest, PlayerBecomesFreeAfterFinishingPlaying)
 {
-    timeline.run_step();
+    timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Waiting);
 
-    player.play(mock_game);
+    timeline.join([&]{ player.play(mock_match); });
+    timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Busy);
 
-    player.finish_playing();
+    timeline.join([&]{ player.finish_playing(); });
+    timeline.run_once();
     ASSERT_EQ(player.get_current_state(), Player::State::Free);
 }
 
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToPlayWhenNotWaiting)
 {
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
-    ASSERT_THROW(player.play(mock_game), PlayerException);
+    timeline.join([&]{ player.play(mock_match); });
+    ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToFinishPlayingWhenNotBusy)
 {
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
-    ASSERT_THROW(player.finish_playing(), PlayerException);
+    timeline.join([&]{ player.finish_playing(); });
+    ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenRequestingMatchWithoutHavingPrefferedGames)
@@ -88,7 +99,7 @@ TEST_F(PlayerTest, PlayerThrowsExceptionWhenRequestingMatchWithoutHavingPreffere
     };
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
 
-    ASSERT_THROW(timeline.run_step(), PlayerException);
+    ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 
 }

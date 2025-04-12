@@ -1,7 +1,7 @@
 #pragma once
 
 #include "exception.h"
-#include "core/timeline_bound.h"
+#include "core/timeline_object.h"
 #include "core/timing.h"
 #include "core/user.h"
 #include "misc/prng.h"
@@ -9,23 +9,23 @@
 
 namespace matchmaker::core {
 
-class PlayerEndpoint;
+class PlayerEndpoint; class Match;
 
-class Player : public TimelineBound {
+class Player : public TimelineObject {
 public:
     enum class State {
-        Free = 0, Waiting, Busy
+        Created, Free, Waiting, Busy
     };
 
-    Player(User& user, Timeline& timeline, PlayerEndpoint& endpoint, misc::PRNG prng = {});
+    Player(User& user, PlayerEndpoint& endpoint, misc::PRNG prng = {});
 
     inline const User& get_user() const noexcept
     {
         return user;
     }
 
-    void perform() override;
-    void play(const Game& game);
+    void init();
+    void play(Match& match);
     void finish_playing();
 
     inline State get_current_state() const noexcept
@@ -38,6 +38,8 @@ public:
         wait_time = 3s;
 
 private:
+    void exec() override;
+
     void rest();
     void withdraw_match_and_rest();
     void select_game_and_request_match_and_wait();
@@ -52,7 +54,7 @@ private:
 
     State state = State::Free;
     Time last_state_change_time;
-    const Game *current_game = nullptr;
+    Match *current_match = nullptr;
 };
 
 class PlayerEndpoint {

@@ -3,8 +3,8 @@
 
 namespace matchmaker::core {
 
-MatchMediator::MatchMediator(RatingMap& rating_map) :
-    rating_map(rating_map)
+MatchMediator::MatchMediator(RatingMap& rating_map, Timeline& timeline) :
+    rating_map(rating_map), timeline(timeline)
 {
 }
 
@@ -25,8 +25,6 @@ void MatchMediator::withdraw_match(const Player& player)
 
 void MatchMediator::notify_match_finished(Match& match, GameWinner winner)
 {
-    // TODO: ensure thread-safety
-
     Player *winner_player = nullptr;
     if (winner == GameWinner::PlayerA)
         winner_player = match.get_player_a();
@@ -39,6 +37,11 @@ void MatchMediator::notify_match_finished(Match& match, GameWinner winner)
     }
 
     remove_match(match);
+}
+
+Timeline& MatchMediator::get_timeline() const noexcept
+{
+    return timeline;
 }
 
 Rating MatchMediator::get_player_rating_for_game(const Game& game, const Player& player)

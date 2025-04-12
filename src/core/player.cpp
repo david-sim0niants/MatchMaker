@@ -1,22 +1,45 @@
 #include "core/player.h"
+#include "core/match.h"
 
 #include <cassert>
 
 namespace matchmaker::core {
 
-Player::Player(User& user, Timeline& timeline, PlayerEndpoint& endpoint, misc::PRNG prng) :
-    TimelineBound(timeline),
+Player::Player(User& user, PlayerEndpoint& endpoint, misc::PRNG prng) :
     user(user),
     endpoint(endpoint),
     prng(prng),
-    last_state_change_time(timeline.get_current_time())
+    state(Player::State::Created),
+    last_state_change_time(0)
 {
+}
+
+void Player::init()
+{
+    if (! Timeline::running())
+        throw PlayerException("attempt to initialize a player outside timeline");
     rest();
 }
 
-
-void Player::perform()
+void Player::play(Match& match)
 {
+    expect_state(State::Waiting);
+    current_match = &match;
+    change_state(State::Busy);
+}
+
+void Player::finish_playing()
+{
+    expect_state(State::Busy);
+    current_match = nullptr;
+    rest();
+}
+
+void Player::exec()
+{
+    if (state == State::Created)
+        throw PlayerException("player must be initialized first");
+
     Time current_time = get_current_time();
     assert(current_time >= last_state_change_time);
 
@@ -31,20 +54,6 @@ void Player::perform()
     default:
         break;
     }
-}
-
-void Player::play(const Game& game)
-{
-    expect_state(State::Waiting);
-    current_game = &game;
-    change_state(State::Busy);
-}
-
-void Player::finish_playing()
-{
-    expect_state(State::Busy);
-    current_game = nullptr;
-    rest();
 }
 
 void Player::rest()

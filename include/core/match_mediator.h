@@ -13,11 +13,12 @@ class MatchMediator : public PlayerEndpoint, public MatchEndpoint {
     using Rating = MatchArranger::Rating;
 
 public:
-    explicit MatchMediator(RatingMap& rating_map);
+    explicit MatchMediator(RatingMap& rating_map, Timeline& timeline);
 
     void request_match(Player& player, Game& game) override;
     void withdraw_match(const Player& player) override;
     void notify_match_finished(Match& match, GameWinner winner) override;
+    Timeline& get_timeline() const noexcept override;
 
 private:
     Rating get_player_rating_for_game(const Game& game, const Player& player);
@@ -27,6 +28,7 @@ private:
     void remove_match(const Match& match);
 
     RatingMap& rating_map;
+    Timeline& timeline;
     MatchArranger match_arranger;
     std::unordered_map<const Match *, std::unique_ptr<Match>> match_container;
 };

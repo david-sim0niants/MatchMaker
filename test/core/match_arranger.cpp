@@ -9,10 +9,17 @@
 
 namespace matchmaker::core::test {
 
+using ::testing::NiceMock;
+
 class MatchArrangerTest : public ::testing::Test {
 protected:
+    void SetUp() override
+    {
+        timeline.join([this] { player_1.init(); player_2.init(); player_3.init(); });
+    }
+
     mock::Game game;
-    mock::Waiter waiter;
+    NiceMock<mock::Waiter> waiter;
     mock::PlayerEndpoint player_endpoint;
     Timeline timeline {waiter};
 
@@ -20,9 +27,9 @@ protected:
     User user_2 {"bob", "Bob", "Dylan", {&game}};
     User user_3 {"johndoe", "John", "Doe", {&game}};
 
-    Player player_1 {user_1, timeline, player_endpoint};
-    Player player_2 {user_2, timeline, player_endpoint};
-    Player player_3 {user_3, timeline, player_endpoint};
+    Player player_1 {user_1, player_endpoint};
+    Player player_2 {user_2, player_endpoint};
+    Player player_3 {user_3, player_endpoint};
 
     MatchArranger match_arranger;
 };

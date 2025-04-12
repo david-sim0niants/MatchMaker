@@ -5,21 +5,23 @@
 
 #include "core/timeline.h"
 #include "misc/prng.h"
-#include "mock/core/performer.h"
 #include "mock/core/waiter.h"
 
 namespace matchmaker::core::test {
 
 using ::testing::_;
-using ::testing::Return;
 using ::testing::NiceMock;
 using ::testing::InSequence;
+using ::testing::MockFunction;
+using ::testing::Exactly;
 
 class TimelineTest : public ::testing::Test {
 protected:
     void SetUp() override
     {
-        ON_CALL(mock_waiter, wait_for(_)).WillByDefault(Return());
+        ON_CALL(mock_waiter, wait_for(_)).WillByDefault(
+                [](Duration duration){ return duration; }
+            );
     }
 
     static constexpr std::size_t nr_events = 16;
@@ -54,7 +56,7 @@ protected:
 
 TEST_F(TimelineTest, RandomlySchedulingAtSpecificTimesRunsInChronologicalOrder)
 {
-    std::array<mock::Performer, nr_events> performers;
+    MockFunction<void ()> event;
     std::array<Time, nr_events> expected_timestamps;
 
     std::array<std::size_t, nr_events> random_order;
@@ -63,44 +65,70 @@ TEST_F(TimelineTest, RandomlySchedulingAtSpecificTimesRunsInChronologicalOrder)
     gen_shuffled_indices(random_order);
 
     InSequence seq;
+    EXPECT_CALL(mock_waiter, interrupt).Times(Exactly(1));
     for (std::size_t i = 0; i < nr_events; ++i)
-        EXPECT_CALL(performers[i], perform).WillOnce(
-                [this, &expected_timestamp = expected_timestamps[i]]
+        EXPECT_CALL(event, Call).WillOnce(
+                [this, expected_timestamp = expected_timestamps[i]]
                 {
-                    EXPECT_EQ(timeline.get_current_time(), expected_timestamp);
+                    EXPECT_EQ(expected_timestamp, Timeline::get_current_time());
                 }
             );
 
-    for (std::size_t i : random_order)
-        timeline.schedule_at(expected_timestamps[i], performers[i]);
-
+    timeline.join(
+        [&random_order, &event, &expected_timestamps]
+        {
+            for (std::size_t i : random_order)
+                Timeline::call_at(expected_timestamps[i], event.AsStdFunction());
+        }
+    );
     timeline.run();
 }
 
 TEST_F(TimelineTest, SchedulingFromEventToEventAfterDurationWorks)
 {
-    mock::Performer performer;
+    MockFunction<void ()> event;
     Time expected_event_time = 0s;
 
     InSequence seq;
-    EXPECT_CALL(performer, perform).Times(nr_events - 1).WillRepeatedly(
-            [&performer, &expected_event_time, this]
+    EXPECT_CALL(mock_waiter, interrupt).Times(Exactly(1));
+
+    EXPECT_CALL(event, Call).Times(nr_events - 1).WillRepeatedly(
+            [&expected_event_time, &event, this]
             {
-                EXPECT_EQ(expected_event_time, timeline.get_current_time());
+                EXPECT_EQ(expected_event_time, Timeline::get_current_time());
 
                 Duration duration = gen_random_duration();
                 expected_event_time += duration;
-                timeline.schedule_in(duration, performer);
+                Timeline::call_in(duration, event.AsStdFunction());
             }
         );
-    EXPECT_CALL(performer, perform).WillOnce(
+    EXPECT_CALL(event, Call).WillOnce(
             [&expected_event_time, this]
             {
-                EXPECT_EQ(expected_event_time, timeline.get_current_time());
+                EXPECT_EQ(expected_event_time, Timeline::get_current_time());
             }
         );
 
-    timeline.schedule_at(expected_event_time, performer);
+    timeline.join(event.AsStdFunction());
+
+    timeline.run();
+}
+
+TEST_F(TimelineTest, ScheduleCancellationWorks)
+{
+    MockFunction<void ()> event;
+
+    EXPECT_CALL(event, Call).Times(Exactly(1));
+
+    EventHandle event_handle;
+    timeline.join(
+            [&event, &event_handle]
+            {
+                event_handle = Timeline::call_at(10ms, event.AsStdFunction());
+                Timeline::call_at(10ms, event.AsStdFunction());
+            }
+        );
+    timeline.join([&event, &event_handle]{ Timeline::cancel(event_handle); });
     timeline.run();
 }
 
