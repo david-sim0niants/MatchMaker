@@ -12,3 +12,4 @@ target_link_libraries(${TARGET_NAME} PRIVATE match_maker_core match_maker_misc m
 add_subdirectory(core)
 add_subdirectory(misc)
 add_subdirectory(gui)
+add_subdirectory(games)
