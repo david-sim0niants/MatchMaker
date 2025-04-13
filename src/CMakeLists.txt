@@ -9,6 +9,13 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 target_include_directories(${TARGET_NAME} PRIVATE ${ROOT_INCLUDE_DIR})
 target_link_libraries(${TARGET_NAME} PRIVATE match_maker_core match_maker_misc match_maker_gui)
 
+set(SANITIZE "none" CACHE STRING "Enable sanitizer: none, address, thread")
+
+string(TOLOWER ${SANITIZE} SANITIZE)
+
+target_compile_options(${TARGET_NAME} PUBLIC -fsanitize=${SANITIZE})
+target_link_options(${TARGET_NAME} PUBLIC -fsanitize=${SANITIZE})
+
 add_subdirectory(core)
 add_subdirectory(misc)
 add_subdirectory(gui)

@@ -3,14 +3,18 @@
 
 #include <cassert>
 
+#include <iostream>
+
 namespace matchmaker::core {
 
-Player::Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG prng) :
+Player::Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG& prng,
+               PlayerObserver *observer) :
     user(user),
     endpoint(endpoint),
     prng(prng),
     state(Player::State::Created),
-    last_state_change_time(0)
+    last_state_change_time(0),
+    observer(observer)
 {
 }
 
@@ -35,6 +39,8 @@ void Player::play(Match& match)
 {
     expect_state(State::Waiting);
     current_match = &match;
+    if (observer)
+        observer->on_match_start(*this, *current_match, get_current_time());
     change_state(State::Busy);
 }
 
@@ -101,6 +107,9 @@ void Player::select_game_and_request_match()
 void Player::leave_match()
 {
     current_match->stop(this);
+    current_match = nullptr;
+    if (observer)
+        observer->on_match_leave(*this, get_current_time());
 }
 
 void Player::expect_state(State state)
@@ -115,11 +124,15 @@ void Player::change_state(State state)
 {
     this->state = state;
     last_state_change_time = get_current_time();
+    if (observer)
+        observer->on_state_change(*this, state, get_current_time());
 }
 
 std::string_view get_strview_of_player_state(Player::State state)
 {
     switch (state) {
+    case Player::State::Created:
+        return "Created";
     case Player::State::Free:
         return "Free";
     case Player::State::Waiting:

@@ -1,6 +1,5 @@
 function (make_tic_tac_toe CONFIG_SIZE)
     set(TARGET_NAME tic_tac_toe_${CONFIG_SIZE}x${CONFIG_SIZE})
-    message(${TARGET_NAME})
 
     add_executable(${TARGET_NAME} tic_tac_toe.cpp)
     target_compile_definitions(${TARGET_NAME} PRIVATE -DCONFIG_SIZE=${CONFIG_SIZE})

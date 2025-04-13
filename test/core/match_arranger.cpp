@@ -3,9 +3,11 @@
 #include "core/match_arranger.h"
 #include "core/player.h"
 #include "core/timeline.h"
+#include "misc/prng.h"
 #include "mock/core/game.h"
 #include "mock/core/player_endpoint.h"
 #include "mock/core/waiter.h"
+#include "test_config.h"
 
 namespace matchmaker::core::test {
 
@@ -15,8 +17,10 @@ class MatchArrangerTest : public ::testing::Test {
 protected:
     void SetUp() override
     {
-        timeline.join([this] { player_1.init(); player_2.init(); player_3.init(); });
+        timeline.sync_call([this] { player_1.init(); player_2.init(); player_3.init(); });
     }
+
+    misc::PRNG prng {TestConfig::get_prng_seed()};
 
     mock::Game game;
     NiceMock<mock::Waiter> waiter;
@@ -27,9 +31,9 @@ protected:
     User user_2 {"bob", "Bob", "Dylan", {&game}};
     User user_3 {"johndoe", "John", "Doe", {&game}};
 
-    Player player_1 {user_1, player_endpoint};
-    Player player_2 {user_2, player_endpoint};
-    Player player_3 {user_3, player_endpoint};
+    Player player_1 {user_1, player_endpoint, prng};
+    Player player_2 {user_2, player_endpoint, prng};
+    Player player_3 {user_3, player_endpoint, prng};
 
     MatchArranger match_arranger;
 };

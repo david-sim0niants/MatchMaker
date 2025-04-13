@@ -3,6 +3,7 @@
 #include "misc/subprocess_observer.h"
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
@@ -37,6 +38,7 @@ private:
     void stop();
 
     std::mutex mutex;
+    std::condition_variable cv;
     std::unordered_map<pid_t, SubprocessObserver *> observer_by_pid;
     std::atomic_bool running;
     std::thread thread;

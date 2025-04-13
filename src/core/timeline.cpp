@@ -16,7 +16,7 @@ Timeline::~Timeline()
         unset_as_current();
 }
 
-void Timeline::join(EventCallback&& event_callback)
+void Timeline::sync_call(EventCallback&& event_callback)
 {
     std::scoped_lock lock {async_immediate_events_mutex};
     async_immediate_events.emplace_back(std::move(event_callback));
@@ -66,6 +66,12 @@ void Timeline::cancel(EventHandle event_handle)
 {
     assert(running() && "No timeline currently running.");
     return get_current()->cancel_event(event_handle);
+}
+
+void Timeline::cancel_all()
+{
+    assert(running() && "No timeline currently running.");
+    return get_current()->cancel_all_events();
 }
 
 Time Timeline::get_current_time()
@@ -156,8 +162,8 @@ EventHandle Timeline::schedule_at(Time time, EventCallback&& event_callback)
 
     auto event_it = events.upper_bound(time);
     if (event_it != events.begin() && (--event_it)->first.time == time) {
-        ++event_it;
         event_handle.event.id = event_it->first.id + 1;
+        ++event_it;
     }
     events.emplace_hint(event_it, event_handle.event, std::move(event_callback));
     return event_handle;
@@ -168,6 +174,11 @@ void Timeline::cancel_event(EventHandle event_handle)
     auto event_it = events.find(event_handle.event);
     if (event_it != events.end())
         events.erase(event_it);
+}
+
+void Timeline::cancel_all_events()
+{
+    events.clear();
 }
 
 void Timeline::wait_until(Time time)

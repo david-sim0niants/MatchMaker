@@ -3,6 +3,7 @@
 #include "core/player.h"
 #include "core/timeline.h"
 #include "core/match.h"
+#include "misc/prng.h"
 #include "mock/core/player_endpoint.h"
 #include "mock/core/waiter.h"
 #include "mock/core/game.h"
@@ -19,9 +20,11 @@ protected:
         ON_CALL(mock_waiter, wait_for(_)).WillByDefault(
                 [](Duration duration){ return duration; }
             );
-        timeline.join([this]{ player.init(); });
+        timeline.sync_call([this]{ player.init(); });
         timeline.run_once();
     }
+
+    misc::PRNG prng;
 
     NiceMock<mock::Waiter> mock_waiter;
     NiceMock<mock::Game> mock_game;
@@ -31,7 +34,7 @@ protected:
     User user {"johndoe", "John", "Doe", {&mock_game}};
     Timeline timeline {mock_waiter, 0ms};
 
-    Player player {user, player_endpoint};
+    Player player {user, player_endpoint, prng};
 };
 
 TEST_F(PlayerTest, PlayerStartsFree)
@@ -59,7 +62,7 @@ TEST_F(PlayerTest, PlayerBecomesBusyWhenPlaying)
     timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Waiting);
 
-    timeline.join([&]{ player.play(mock_match); });
+    timeline.sync_call([&]{ player.play(mock_match); });
     timeline.run_once();
     ASSERT_EQ(player.get_current_state(), Player::State::Busy);
 }
@@ -69,11 +72,11 @@ TEST_F(PlayerTest, PlayerBecomesFreeAfterFinishingPlaying)
     timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Waiting);
 
-    timeline.join([&]{ player.play(mock_match); });
+    timeline.sync_call([&]{ player.play(mock_match); });
     timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Busy);
 
-    timeline.join([&]{ player.finish_playing(); });
+    timeline.sync_call([&]{ player.finish_playing(); });
     timeline.run_once();
     ASSERT_EQ(player.get_current_state(), Player::State::Free);
 }
@@ -81,14 +84,14 @@ TEST_F(PlayerTest, PlayerBecomesFreeAfterFinishingPlaying)
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToPlayWhenNotWaiting)
 {
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
-    timeline.join([&]{ player.play(mock_match); });
+    timeline.sync_call([&]{ player.play(mock_match); });
     ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToFinishPlayingWhenNotBusy)
 {
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
-    timeline.join([&]{ player.finish_playing(); });
+    timeline.sync_call([&]{ player.finish_playing(); });
     ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 

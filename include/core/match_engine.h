@@ -1,12 +1,14 @@
 #pragma once
 
+#include "core/player.h"
 #include "core/waiter.h"
 #include "core/timeline.h"
 #include "core/match_mediator.h"
 #include "core/rating_map.h"
 #include "core/user.h"
-#include "core/user_rating_observer.h"
+#include "core/user_observers.h"
 #include "exception.h"
+#include "misc/prng.h"
 
 #include <future>
 #include <type_traits>
@@ -14,18 +16,10 @@
 namespace matchmaker::core {
 
 class MatchEngine {
-private:
-    class RatingMapObserverAdapter : public RatingMapObserver {
-    public:
-        RatingMapObserverAdapter(UserRatingObserver *user_rating_observer);
-        void notify_rating_change(const Game& game, const Player& player, Rating rating);
-
-    private:
-        UserRatingObserver *user_rating_observer;
-    };
-
 public:
-    explicit MatchEngine(Waiter& waiter, UserRatingObserver *rating_observer = nullptr);
+    explicit MatchEngine(misc::PRNG& prng, Waiter& waiter,
+            UserRatingObserver *rating_observer = nullptr,
+            PlayerObserver *player_observer = nullptr);
 
     MatchEngine(const MatchEngine&) = delete;
     MatchEngine& operator=(const MatchEngine&) = delete;
@@ -40,28 +34,44 @@ public:
         return std::async(&MatchEngine::run, this);
     }
 
+    void keep_alive();
+    void let_die();
+
     template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
     void add_user(const User& user, F on_add = []{})
     {
-        timeline.join([this, &user, on_add]{ new_player_for(user)->init(); on_add(); });
+        timeline.sync_call([this, &user, on_add]{ new_player_for(user).init(); on_add(); });
     }
 
     template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
     void rem_user(const User& user, F on_rem = []{})
     {
-        timeline.join([this, &user, on_rem]{ del_player_of(user)->deinit(); on_rem(); });
+        timeline.sync_call([this, &user, on_rem]{ del_player_of(user)->deinit(); on_rem(); });
+    }
+
+    template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
+    void rem_all_users(F on_rem = []{})
+    {
+        timeline.sync_call([this, on_rem]{ del_all_players(); });
     }
 
 private:
-    std::shared_ptr<Player> new_player_for(const User& user);
-    std::shared_ptr<Player> del_player_of(const User& user);
+    Player& new_player_for(const User& user);
+    std::unique_ptr<Player> del_player_of(const User& user);
+    void del_all_players();
+
+    misc::PRNG& prng;
 
     Waiter& waiter;
-    RatingMapObserverAdapter rating_map_observer_adapter;
-    RatingMap rating_map;
     Timeline timeline {waiter};
+    EventHandle sentinel_event;
+
+    RatingMapToUserRatingObserverAdapter rating_map_observer;
+    PlayerObserver *player_observer;
+
+    RatingMap rating_map;
     MatchMediator mediator {rating_map, timeline};
-    std::unordered_map<const User *, std::shared_ptr<Player>> player_by_user;
+    std::unordered_map<const User *, std::unique_ptr<Player>> player_by_user;
 };
 
 class MatchEngineException : public Exception {

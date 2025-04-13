@@ -69,7 +69,7 @@ public:
     Timeline(Timeline&&) = delete;
     Timeline& operator=(Timeline&&) = delete;
 
-    void join(EventCallback&& event_callback);
+    void sync_call(EventCallback&& event_callback);
 
     std::pair<Time, bool> run_once();
     std::pair<Time, bool> run_till_next_time();
@@ -79,6 +79,7 @@ public:
     static EventHandle call_in(Duration duration, EventCallback&& event_callback);
     static EventHandle call_at(Time time, EventCallback&& event_callback);
     static void cancel(EventHandle event_handle);
+    static void cancel_all();
     static Time get_current_time();
 
 private:
@@ -93,6 +94,7 @@ private:
     EventHandle schedule_in(Duration duration, EventCallback&& event_callback);
     EventHandle schedule_at(Time time, EventCallback&& event_callback);
     void cancel_event(EventHandle event_handle);
+    void cancel_all_events();
 
     void wait_until(Time time);
     void interrupt();

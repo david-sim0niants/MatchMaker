@@ -3,7 +3,7 @@
 #include "core/player.h"
 #include "misc/subprocess.h"
 
-#include <algorithm>
+#include <iostream>
 #include <memory>
 #include <sys/wait.h>
 
@@ -12,23 +12,49 @@ namespace matchmaker::core {
 static std::pair<std::string_view, std::string_view>
     find_last_two_words(std::string_view str)
 {
-    auto is_space = [](char ch) { return std::isspace(static_cast<unsigned char>(ch)); };
+   // Trim trailing whitespace
+    size_t end = str.size();
+    while (end > 0 && std::isspace(str[end - 1])) {
+        --end;
+    }
 
-    auto r = str.rbegin();
-    auto rend = str.rend();
+    if (end == 0) {
+        return { {}, {} };
+    }
 
-    r = std::find_if_not(r, rend, is_space);
+    // Find the last word
+    size_t last_word_end = end - 1;
+    size_t last_word_start = last_word_end;
 
-    auto word2_end = r;
-    auto word2_start = std::find_if(word2_end, rend, is_space);
+    while (last_word_start > 0 && !std::isspace(str[last_word_start - 1])) {
+        --last_word_start;
+    }
 
-    auto word1_end = std::find_if_not(word2_start, rend, is_space);
-    auto word1_start = std::find_if(word1_end, rend, is_space);
+    std::string_view last = str.substr(last_word_start, last_word_end - last_word_start + 1);
 
-    std::string_view w1(&*word1_start, word1_end - word1_start);
-    std::string_view w2(&*word2_start, word2_end - word2_start);
+    if (last_word_start == 0) {
+        return { {}, last };
+    }
 
-    return {w1, w2};
+    // Skip whitespace between the two words
+    size_t second_end = last_word_start - 1;
+    while (second_end > 0 && std::isspace(str[second_end])) {
+        --second_end;
+    }
+
+    if (second_end == 0 && std::isspace(str[second_end])) {
+        return { {}, last };
+    }
+
+    // Find the second last word
+    size_t second_word_start = second_end;
+    while (second_word_start > 0 && !std::isspace(str[second_word_start - 1])) {
+        --second_word_start;
+    }
+
+    std::string_view second_last = str.substr(second_word_start, second_end - second_word_start + 1);
+
+    return { second_last, last };
 }
 
 static misc::Subprocess make_subprocess(
@@ -52,14 +78,9 @@ public:
             const char *player_a_name, const char *player_b_name,
             GameInstanceObserver *observer) :
         player_a_name(player_a_name), player_b_name(player_b_name),
-        subprocess(make_subprocess(exec_path, exec_name, player_a_name, player_b_name, this)),
-        observer(observer)
+        observer(observer),
+        subprocess(make_subprocess(exec_path, exec_name, player_a_name, player_b_name, this))
     {
-    }
-
-    ~ExecutableGameInstance()
-    {
-        stop();
     }
 
     virtual void stop() override
@@ -88,6 +109,7 @@ private:
     GameWinner parse_result() const
     {
         std::string output = subprocess.read_stdout_full();
+        std::cout << output << std::endl;
         auto [word1, word2] = find_last_two_words(output);
         if (word1 == player_a_name && word2 == player_b_name ||
             word1 == player_b_name && word2 == player_a_name)

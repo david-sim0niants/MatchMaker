@@ -32,7 +32,7 @@ void Match::start(MatchEndpoint& endpoint)
 
 void Match::stop(Player *leaving_player)
 {
-    if (! game_instance)
+    if (! game_instance || ! endpoint)
         throw MatchException("cannot stop, the match has not started yet");
 
     game_instance->stop();
@@ -81,7 +81,7 @@ void Match::finalize()
 void Match::notify_finished(GameWinner winner)
 {
     assert(endpoint != nullptr);
-    endpoint->get_timeline().join([this, winner]() { finish(winner); });
+    endpoint->get_timeline().sync_call([this, winner]() { finish(winner); });
 }
 
 }

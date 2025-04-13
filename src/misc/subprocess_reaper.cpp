@@ -1,5 +1,7 @@
 #include "misc/subprocess_reaper.h"
+#include "misc/printing.h"
 
+#include <cstring>
 #include <sys/wait.h>
 
 namespace matchmaker::misc {
@@ -20,6 +22,8 @@ void SubprocessReaper::set_observer_of(pid_t pid, SubprocessObserver& observer)
 {
     std::scoped_lock lock {mutex};
     observer_by_pid[pid] = &observer;
+    if (observer_by_pid.size() == 1)
+        cv.notify_one();
 }
 
 void SubprocessReaper::unset_observer_of(pid_t pid)
@@ -57,6 +61,14 @@ SubprocessObserver *SubprocessReaper::takeoff_observer_of(pid_t pid)
 void SubprocessReaper::reap()
 {
     while (running.load(std::memory_order_acquire)) {
+        {
+            std::unique_lock lock {mutex};
+            cv.wait(lock, [this]{ return ! observer_by_pid.empty() ||
+                    !running.load(std::memory_order_relaxed); });
+        }
+        if (!running.load(std::memory_order_acquire))
+            break;
+
         int status;
         pid_t pid = waitpid(-1, &status, 0);
         if (pid > 0) {
@@ -65,14 +77,17 @@ void SubprocessReaper::reap()
             else
                 notify_exit_fail(pid);
         } else {
-            notify_exit_fail(pid);
+            throw std::runtime_error(misc::stringify("waitpid() failed: ", strerror(errno)));
         }
     }
 }
 
 void SubprocessReaper::stop()
 {
+    std::scoped_lock lock {mutex};
     running.store(false, std::memory_order_release);
+    observer_by_pid.clear();
+    cv.notify_one();
 }
 
 }

@@ -12,10 +12,10 @@ void MatchMediator::request_match(Player& player, Game& game)
 {
     Rating rating = get_player_rating_for_game(game, player);
     auto match = match_arranger.find_or_request_match(player, rating, game);
-    if (match)
+    if (match) {
         match->start(*this);
-
-    add_match(std::move(match));
+        add_match(std::move(match));
+    }
 }
 
 void MatchMediator::withdraw_match(const Player& player)

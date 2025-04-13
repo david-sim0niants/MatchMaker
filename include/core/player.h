@@ -9,7 +9,7 @@
 
 namespace matchmaker::core {
 
-class PlayerEndpoint; class Match;
+class PlayerEndpoint; class PlayerObserver; class Match;
 
 class Player : public TimelineObject {
 public:
@@ -17,7 +17,8 @@ public:
         Created, Free, Waiting, Busy
     };
 
-    Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG prng = {});
+    Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG& prng,
+           PlayerObserver *observer = nullptr);
 
     inline const User& get_user() const noexcept
     {
@@ -53,17 +54,26 @@ private:
 
     const User& user;
     PlayerEndpoint& endpoint;
-    misc::PRNG prng;
+    misc::PRNG& prng;
 
     State state = State::Free;
     Time last_state_change_time;
     Match *current_match = nullptr;
+
+    PlayerObserver *observer = nullptr;
 };
 
 class PlayerEndpoint {
 public:
     virtual void request_match(Player& player, Game& game) = 0;
     virtual void withdraw_match(const Player& player) = 0;
+};
+
+class PlayerObserver {
+public:
+    virtual void on_state_change(const Player& player, Player::State state, Time time) = 0;
+    virtual void on_match_start(const Player& player, Match& match, Time time) = 0;
+    virtual void on_match_leave(const Player& player, Time time) = 0;
 };
 
 class PlayerException : public Exception {
