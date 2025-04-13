@@ -9,6 +9,7 @@
 #include "exception.h"
 
 #include <future>
+#include <type_traits>
 
 namespace matchmaker::core {
 
@@ -39,20 +40,28 @@ public:
         return std::async(&MatchEngine::run, this);
     }
 
-    void add_user(const User& user);
+    template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
+    void add_user(const User& user, F on_add = []{})
+    {
+        timeline.join([this, &user, on_add]{ new_player_for(user)->init(); on_add(); });
+    }
 
-    void rem_user(const User& user);
+    template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
+    void rem_user(const User& user, F on_rem = []{})
+    {
+        timeline.join([this, &user, on_rem]{ del_player_of(user)->deinit(); on_rem(); });
+    }
 
 private:
-    Player& new_player_for(const User& user);
-    Player del_player_of(const User& user);
+    std::shared_ptr<Player> new_player_for(const User& user);
+    std::shared_ptr<Player> del_player_of(const User& user);
 
     Waiter& waiter;
     RatingMapObserverAdapter rating_map_observer_adapter;
     RatingMap rating_map;
     Timeline timeline {waiter};
     MatchMediator mediator {rating_map, timeline};
-    std::unordered_map<const User *, Player *> player_by_user;
+    std::unordered_map<const User *, std::shared_ptr<Player>> player_by_user;
 };
 
 class MatchEngineException : public Exception {
