@@ -6,6 +6,8 @@
 
 namespace Ui { class MainWindow; }
 
+namespace matchmaker::gui {
+
 class MainWindow : public QMainWindow {
     Q_OBJECT;
 public:
@@ -15,3 +17,5 @@ public:
 private:
     std::unique_ptr<Ui::MainWindow> ui;
 };
+
+}
