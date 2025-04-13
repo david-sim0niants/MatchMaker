@@ -27,7 +27,20 @@ MainWindow::MainWindow(QWidget *parent) :
     horizontal_layout->addWidget(dashboard);
     horizontal_layout->addWidget(user_list);
 
+    connect(menu_bar, &MenuBar::show_hide_dashboard, this, &MainWindow::toggle_dashboard);
+    connect(menu_bar, &MenuBar::show_hide_user_list, this, &MainWindow::toggle_user_list);
+
     resize(800, 600);
+}
+
+void MainWindow::toggle_dashboard()
+{
+    dashboard->setVisible(! dashboard->isVisible());
+}
+
+void MainWindow::toggle_user_list()
+{
+    user_list->setVisible(! user_list->isVisible());
 }
 
 }

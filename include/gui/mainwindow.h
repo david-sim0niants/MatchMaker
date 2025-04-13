@@ -16,6 +16,10 @@ private:
     MenuBar *menu_bar;
     QWidget *user_list;
     QWidget *dashboard;
+
+private slots:
+    void toggle_dashboard();
+    void toggle_user_list();
 };
 
 }

@@ -15,6 +15,9 @@ MenuBar::MenuBar(QWidget *parent) : QMenuBar(parent)
     QMenu *view_menu = addMenu("View");
     QAction *show_hide_dashboard = view_menu->addAction("Show/Hide Dashboard");
     QAction *show_hide_user_list = view_menu->addAction("Show/Hide User List");
+
+    connect(show_hide_dashboard, &QAction::triggered, this, &MenuBar::on_show_hide_dashboard);
+    connect(show_hide_user_list, &QAction::triggered, this, &MenuBar::on_show_hide_user_list);
 }
 
 }
