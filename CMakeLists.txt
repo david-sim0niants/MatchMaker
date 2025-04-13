@@ -7,8 +7,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-
 set(ROOT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(SANITIZE "none" CACHE STRING "Enable sanitizer: none, address, thread")
