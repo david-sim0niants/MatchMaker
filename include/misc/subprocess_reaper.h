@@ -2,7 +2,6 @@
 
 #include "misc/subprocess_observer.h"
 
-#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -35,12 +34,12 @@ private:
     SubprocessObserver *takeoff_observer_of(pid_t pid);
 
     void reap();
-    void stop();
+    void shutdown();
 
     std::mutex mutex;
     std::condition_variable cv;
     std::unordered_map<pid_t, SubprocessObserver *> observer_by_pid;
-    std::atomic_bool running;
+    bool running;
     std::thread thread;
 
     static SubprocessReaper instance;

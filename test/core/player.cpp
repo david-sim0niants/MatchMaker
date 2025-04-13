@@ -53,7 +53,8 @@ TEST_F(PlayerTest, PlayerGoesBackToRestingAfterWaitingForTooLong)
 {
     timeline.run_once();
     auto [curr_time, needs_run] = timeline.run_once();
-    EXPECT_EQ(curr_time.count(), (Player::free_time + Player::wait_time).count());
+    EXPECT_GE(curr_time.count(), (Player::free_time + Player::min_wait_time).count());
+    EXPECT_LE(curr_time.count(), (Player::free_time + Player::max_wait_time).count());
     ASSERT_EQ(player.get_current_state(), Player::State::Free);
 }
 

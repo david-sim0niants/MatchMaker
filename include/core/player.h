@@ -38,7 +38,8 @@ public:
 
     static constexpr Duration
         free_time = 2s,
-        wait_time = 3s;
+        min_wait_time = 2s,
+        max_wait_time = 3s;
 
 private:
     void exec() override;

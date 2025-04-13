@@ -62,6 +62,7 @@ Subprocess::Subprocess(const char *path, char *const argv[], SubprocessObserver 
 
 Subprocess::~Subprocess()
 {
+    SubprocessReaper::get_instance().unset_observer_of(pid);
     if (running)
         kill_nothrow();
     close(stdout_read_fd);

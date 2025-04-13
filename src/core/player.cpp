@@ -61,12 +61,11 @@ void Player::exec()
 
     switch (state) {
     case State::Free:
-        if (current_time - last_state_change_time >= free_time)
-            select_game_and_request_match_and_wait();
+        select_game_and_request_match_and_wait();
         break;
     case State::Waiting:
-        if (current_time - last_state_change_time >= wait_time)
-            withdraw_match_and_rest();
+        withdraw_match_and_rest();
+        break;
     default:
         break;
     }
@@ -89,8 +88,10 @@ void Player::select_game_and_request_match_and_wait()
     change_state(State::Waiting);
     select_game_and_request_match();
 
-    if (get_current_state() == State::Waiting)
-        wait_for(wait_time);
+    if (get_current_state() == State::Waiting) {
+        Duration random_wait_time {prng(min_wait_time.count(), max_wait_time.count())};
+        wait_for(random_wait_time);
+    }
 }
 
 void Player::select_game_and_request_match()

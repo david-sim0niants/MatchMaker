@@ -14,7 +14,33 @@ namespace matchmaker::core {
 class Timeline {
     using EventID = uint64_t;
 
-    struct Event {
+public:
+    class Event {
+        friend class Timeline;
+
+    public:
+        Event() = default;
+
+        inline Time get_time() const noexcept
+        {
+            return time;
+        }
+
+        inline bool operator==(const Event& rhs) const noexcept
+        {
+            return time == rhs.time && id == rhs.id;
+        }
+
+        inline bool operator!=(const Event& rhs) const noexcept
+        {
+            return !(*this == rhs);
+        }
+
+    private:
+        Event(Time time, EventID id) : time(time), id(id)
+        {
+        }
+
         Time time {};
         EventID id = 0;
     };
@@ -38,27 +64,14 @@ class Timeline {
         }
     };
 
-public:
-    class EventHandle {
-        friend class Timeline;
-
-    public:
-        EventHandle() = default;
-
-        inline Time get_time() const noexcept
+    struct EventHasher {
+        std::size_t operator()(const Event& event) const noexcept
         {
-            return event.time;
+            return std::hash<Time::rep>{}(event.time.count()) ^ std::hash<EventID>{}(event.id);
         }
-
-    private:
-        EventHandle(Event event) : event(event) {}
-        Event event;
     };
 
-    using EventCallback = std::variant<
-        std::function<void()>,
-        std::function<void(EventHandle handle)>
-    >;
+    using EventCallback = std::variant<std::function<void()>, std::function<void(Event event)>>;
 
     explicit Timeline(Waiter& waiter, Time start_time = 0ms);
     ~Timeline();
@@ -76,24 +89,24 @@ public:
     Time run();
 
     static bool running() noexcept;
-    static EventHandle call_in(Duration duration, EventCallback&& event_callback);
-    static EventHandle call_at(Time time, EventCallback&& event_callback);
-    static void cancel(EventHandle event_handle);
+    static Event call_in(Duration duration, EventCallback&& event_callback);
+    static Event call_at(Time time, EventCallback&& event_callback);
+    static void cancel(Event event);
     static void cancel_all();
     static Time get_current_time();
 
 private:
     bool run_once_internal();
-    static void call_callback(EventCallback& callback, EventHandle& handle);
+    static void call_callback(EventCallback& callback, Event& event);
 
     static Timeline *get_current() noexcept;
     bool is_current() const noexcept;
     void set_as_current();
     void unset_as_current();
 
-    EventHandle schedule_in(Duration duration, EventCallback&& event_callback);
-    EventHandle schedule_at(Time time, EventCallback&& event_callback);
-    void cancel_event(EventHandle event_handle);
+    Event schedule_in(Duration duration, EventCallback&& event_callback);
+    Event schedule_at(Time time, EventCallback&& event_callback);
+    void cancel_event(Event event);
     void cancel_all_events();
 
     void wait_until(Time time);
@@ -110,6 +123,8 @@ private:
     static thread_local std::stack<Timeline *> nested_timelines;
 };
 
-using EventHandle = Timeline::EventHandle;
+using EventHandle = Timeline::Event;
+using EventHandleCompare = Timeline::EventCompare;
+using EventHandleHasher = Timeline::EventHasher;
 
 }

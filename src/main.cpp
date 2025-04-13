@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     User bob("bob", "Bob", "Dylan", {&*exe_games[1], &*exe_games[2], &*exe_games[3]});
 
     CVWaiter waiter;
-    misc::PRNG prng;
+    misc::PRNG prng {42};
 
     ConsoleUserRatingObserver user_rating_observer;
     ConsolePlayerObserver player_observer;

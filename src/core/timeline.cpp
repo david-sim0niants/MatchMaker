@@ -62,10 +62,10 @@ EventHandle Timeline::call_at(Time time, EventCallback&& event_callback)
     return get_current()->schedule_at(time, std::move(event_callback));
 }
 
-void Timeline::cancel(EventHandle event_handle)
+void Timeline::cancel(Event event)
 {
     assert(running() && "No timeline currently running.");
-    return get_current()->cancel_event(event_handle);
+    return get_current()->cancel_event(event);
 }
 
 void Timeline::cancel_all()
@@ -101,9 +101,9 @@ bool Timeline::run_once_internal()
     if (current_time >= event_time) {
         current_time = event_time;
 
-        EventHandle event_handle{events.begin()->first};
+        Event event{events.begin()->first};
         EventCallback& event_callback = events.begin()->second;
-        call_callback(event_callback, event_handle);
+        call_callback(event_callback, event);
 
         events.erase(events.begin());
     }
@@ -111,7 +111,7 @@ bool Timeline::run_once_internal()
     return true;
 }
 
-void Timeline::call_callback(EventCallback& callback, EventHandle& handle)
+void Timeline::call_callback(EventCallback& callback, Event& handle)
 {
     struct Visitor {
         void operator()(std::function<void()>& f)
@@ -119,12 +119,12 @@ void Timeline::call_callback(EventCallback& callback, EventHandle& handle)
             f();
         }
 
-        void operator()(std::function<void(EventHandle)>& f)
+        void operator()(std::function<void(Event)>& f)
         {
             f(handle);
         }
 
-        EventHandle& handle;
+        Event& handle;
     };
     std::visit(Visitor{handle}, callback);
 }
@@ -149,29 +149,29 @@ void Timeline::unset_as_current()
     nested_timelines.pop();
 }
 
-EventHandle Timeline::schedule_in(Duration duration, EventCallback&& event_callback)
+Timeline::Event Timeline::schedule_in(Duration duration, EventCallback&& event_callback)
 {
     return schedule_at(current_time + duration, std::move(event_callback));
 }
 
-EventHandle Timeline::schedule_at(Time time, EventCallback&& event_callback)
+Timeline::Event Timeline::schedule_at(Time time, EventCallback&& event_callback)
 {
     assert(time >= current_time);
 
-    EventHandle event_handle {{ .time = time, .id = 0}};
+    Event event {time, 0};
 
     auto event_it = events.upper_bound(time);
     if (event_it != events.begin() && (--event_it)->first.time == time) {
-        event_handle.event.id = event_it->first.id + 1;
+        event.id = event_it->first.id + 1;
         ++event_it;
     }
-    events.emplace_hint(event_it, event_handle.event, std::move(event_callback));
-    return event_handle;
+    events.emplace_hint(event_it, event, std::move(event_callback));
+    return event;
 }
 
-void Timeline::cancel_event(EventHandle event_handle)
+void Timeline::cancel_event(Event event)
 {
-    auto event_it = events.find(event_handle.event);
+    auto event_it = events.find(event);
     if (event_it != events.end())
         events.erase(event_it);
 }

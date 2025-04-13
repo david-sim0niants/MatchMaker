@@ -13,7 +13,7 @@ SubprocessReaper::SubprocessReaper() :
 
 SubprocessReaper::~SubprocessReaper()
 {
-    stop();
+    shutdown();
     if (thread.joinable())
         thread.join();
 }
@@ -60,14 +60,13 @@ SubprocessObserver *SubprocessReaper::takeoff_observer_of(pid_t pid)
 
 void SubprocessReaper::reap()
 {
-    while (running.load(std::memory_order_acquire)) {
+    while (true) {
         {
             std::unique_lock lock {mutex};
-            cv.wait(lock, [this]{ return ! observer_by_pid.empty() ||
-                    !running.load(std::memory_order_relaxed); });
+            cv.wait(lock, [this]{ return ! observer_by_pid.empty() || !running; });
+            if (! running)
+                break;
         }
-        if (!running.load(std::memory_order_acquire))
-            break;
 
         int status;
         pid_t pid = waitpid(-1, &status, 0);
@@ -76,17 +75,19 @@ void SubprocessReaper::reap()
                 notify_exit(pid, WEXITSTATUS(status));
             else
                 notify_exit_fail(pid);
+        } else if (pid == -1 && errno == EINTR) {
+            continue; // interrupted by signal, just retry
         } else {
             throw std::runtime_error(misc::stringify("waitpid() failed: ", strerror(errno)));
         }
     }
 }
 
-void SubprocessReaper::stop()
+void SubprocessReaper::shutdown()
 {
     std::scoped_lock lock {mutex};
-    running.store(false, std::memory_order_release);
     observer_by_pid.clear();
+    running = false;
     cv.notify_one();
 }
 

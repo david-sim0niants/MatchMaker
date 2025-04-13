@@ -8,13 +8,10 @@ void TimelineObject::wait_for(Duration duration)
         [this](EventHandle handle)
         {
             exec();
-            awaiting_events.erase(
-                    awaiting_events.begin(),
-                    awaiting_events.lower_bound(handle.get_time())
-                );
+            awaiting_events.erase(handle);
         }
     );
-    awaiting_events.emplace(event.get_time(), event);
+    awaiting_events.emplace(event);
 }
 
 void TimelineObject::wait_until(Time time)
@@ -23,19 +20,16 @@ void TimelineObject::wait_until(Time time)
         [this](EventHandle handle)
         {
             exec();
-            awaiting_events.erase(
-                    awaiting_events.begin(),
-                    awaiting_events.lower_bound(handle.get_time())
-                );
+            awaiting_events.erase(handle);
         }
     );
-    awaiting_events.emplace(event.get_time(), event);
+    awaiting_events.emplace(event);
 }
 
 void TimelineObject::cancel_awaiting_events()
 {
-    for (auto& [_, event_handle] : awaiting_events)
-        Timeline::cancel(event_handle);
+    for (auto&& event : awaiting_events)
+        Timeline::cancel(event);
 }
 
 }
