@@ -1,6 +1,7 @@
 #include "core/match_engine.h"
 #include "core/cv_waiter.h"
 #include "core/game_factory.h"
+#include "core/user_registry.h"
 #include "misc/printing.h"
 #include "gui/mainwindow.h"
 
@@ -67,9 +68,16 @@ int main(int argc, char *argv[])
         }
     }
 
-    User johndoe("johndoe", "John", "Doe", {&*exe_games[0], &*exe_games[1], &*exe_games[3]});
-    User alice("alice", "Alice", "Cooper", {&*exe_games[0], &*exe_games[2], &*exe_games[3]});
-    User bob("bob", "Bob", "Dylan", {&*exe_games[1], &*exe_games[2], &*exe_games[3]});
+    UserRegistry user_registry;
+    auto [johndoe, _] = user_registry.register_user(
+            "johndoe", "John", "Doe",
+            {&*exe_games[0], &*exe_games[1], &*exe_games[3]});
+
+    auto [alice, __] = user_registry.register_user(
+            "alice", "Alice", "Cooper", {&*exe_games[0], &*exe_games[2], &*exe_games[3]});
+
+    auto [bob, ___] = user_registry.register_user(
+            "bob", "Bob", "Dylan", {&*exe_games[1], &*exe_games[2], &*exe_games[3]});
 
     CVWaiter waiter;
     misc::PRNG prng {42};
@@ -82,9 +90,9 @@ int main(int argc, char *argv[])
     match_engine.keep_alive();
 
     auto fut_done = match_engine.run_async();
-    match_engine.add_user(johndoe);
-    match_engine.add_user(alice);
-    match_engine.add_user(bob);
+    match_engine.add_user(*johndoe);
+    match_engine.add_user(*alice);
+    match_engine.add_user(*bob);
 
     match_engine.let_die();
 
