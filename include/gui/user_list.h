@@ -14,8 +14,10 @@ class UserList : public QWidget {
 public:
     explicit UserList(QWidget *parent = nullptr);
 
+signals:
+    void clicked_add_user();
+
 private slots:
-    void on_click_add_user();
     void on_filter_users(QStringView pattern);
 
 private:

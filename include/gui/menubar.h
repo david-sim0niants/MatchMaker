@@ -10,11 +10,11 @@ public:
     explicit MenuBar(QWidget *parent = nullptr);
 
 signals:
-    void save_dashboard_file() const;
-    void add_user() const;
-    void del_user() const;
-    void show_hide_dashboard() const;
-    void show_hide_user_list() const;
+    void clicked_save_dashboard_file() const;
+    void clicked_add_user() const;
+    void clicked_del_user() const;
+    void clicked_show_hide_dashboard() const;
+    void clicked_show_hide_user_list() const;
 };
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/add_user_dialog.h"
 #include "gui/menubar.h"
 #include "gui/dashboard.h"
 #include "gui/user_list.h"
@@ -17,6 +18,7 @@ private:
     MenuBar *menu_bar;
     Dashboard *dashboard;
     UserList *user_list;
+    AddUserDialog *add_user_dialog;
 
 private slots:
     void toggle_dashboard();

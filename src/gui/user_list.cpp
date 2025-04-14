@@ -22,13 +22,8 @@ void UserList::init()
 {
     init_table_view();
     init_layout();
-    connect(delegate, &UserListDelegate::clicked_add_user, this, &UserList::on_click_add_user);
+    connect(delegate, &UserListDelegate::clicked_add_user, this, &UserList::clicked_add_user);
     connect(user_list_filter, &UserListFilter::trigerred, this, &UserList::on_filter_users);
-}
-
-void UserList::on_click_add_user()
-{
-    qDebug() << "\n* +AddUser() *\n";
 }
 
 void UserList::on_filter_users(QStringView pattern)

@@ -1,7 +1,7 @@
 set(TARGET_NAME match_maker_gui)
 
 set(COMPONENTS
-    mainwindow menubar dashboard dashboard_model
+    mainwindow menubar dashboard dashboard_model add_user_dialog
     user_list user_list_model user_list_delegate user_list_filter)
 set(HEADER_ONLY_COMPONENTS "")
 
