@@ -9,20 +9,19 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
     setWindowTitle("Match Maker");
-    central_widget = new QWidget(this);
-    setCentralWidget(central_widget);
+    setCentralWidget(new QWidget(this));
 
-    menu_bar = new MenuBar(central_widget);
+    menu_bar = new MenuBar(centralWidget());
     setMenuBar(menu_bar);
 
-    QHBoxLayout *horizontal_layout = new QHBoxLayout(central_widget);
-    central_widget->setLayout(horizontal_layout);
+    QHBoxLayout *horizontal_layout = new QHBoxLayout(centralWidget());
+    centralWidget()->setLayout(horizontal_layout);
 
-    user_list = new QWidget(central_widget);
-    dashboard = new QWidget(central_widget);
+    dashboard = new Dashboard(centralWidget());
+    user_list = new UserList(centralWidget());
 
-    dashboard->setStyleSheet("background-color: lightblue;");
-    user_list->setStyleSheet("background-color: green;");
+    // dashboard->setStyleSheet("background-color: lightblue;");
+    // user_list->setStyleSheet("background-color: green;");
 
     horizontal_layout->addWidget(dashboard);
     horizontal_layout->addWidget(user_list);
@@ -30,7 +29,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(menu_bar, &MenuBar::show_hide_dashboard, this, &MainWindow::toggle_dashboard);
     connect(menu_bar, &MenuBar::show_hide_user_list, this, &MainWindow::toggle_user_list);
 
-    resize(800, 600);
+    dashboard->show();
+    user_list->show();
+
+    resize(1200, 800);
 }
 
 void MainWindow::toggle_dashboard()

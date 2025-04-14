@@ -1,6 +1,8 @@
 #pragma once
 
 #include "gui/menubar.h"
+#include "gui/dashboard.h"
+#include "gui/user_list.h"
 
 #include <QMainWindow>
 
@@ -12,10 +14,9 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
 private:
-    QWidget *central_widget;
     MenuBar *menu_bar;
-    QWidget *user_list;
-    QWidget *dashboard;
+    Dashboard *dashboard;
+    UserList *user_list;
 
 private slots:
     void toggle_dashboard();

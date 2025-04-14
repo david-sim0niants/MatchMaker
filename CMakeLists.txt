@@ -3,6 +3,8 @@ project(MatchMaker CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -20,7 +22,6 @@ elseif (SANITIZE STREQUAL "none")
 else ()
     message(STATUS "Using ${SANITIZE} sanitizer")
 endif ()
-
 
 add_subdirectory(src)
 
