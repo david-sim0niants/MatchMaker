@@ -13,8 +13,9 @@ public:
         ErrorInvalidUsername = 1,
         ErrorInvalidName = 2,
         ErrorInvalidLastName = 4,
-        ErrorUserAlreadyExists = 8,
-        ErrorUserDoesNotExist = 9,
+        ErrorNoPreferredGames = 8,
+        ErrorUserAlreadyExists = 16,
+        ErrorUserDoesNotExist = 17,
     };
     using Error = int;
 

@@ -2,6 +2,7 @@
 #include "core/cv_waiter.h"
 #include "core/game_factory.h"
 #include "core/user_registry.h"
+#include "main_mediator.h"
 #include "misc/printing.h"
 #include "gui/mainwindow.h"
 
@@ -53,8 +54,6 @@ static const char *const available_games[] = {"tic-tac-toe-3x3", "tic-tac-toe-4x
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    gui::MainWindow w;
-    w.show();
 
     std::filesystem::path exe_path(argv[0]);
     ExecutableGameFactory exe_game_factory {exe_path.parent_path()};
@@ -86,6 +85,10 @@ int main(int argc, char *argv[])
     ConsolePlayerObserver player_observer;
 
     MatchEngine match_engine(prng, waiter, &user_rating_observer, &player_observer);
+
+    MainMediator main_mediator {user_registry, match_engine};
+    gui::MainWindow window {main_mediator};
+    window.show();
 
     match_engine.keep_alive();
 

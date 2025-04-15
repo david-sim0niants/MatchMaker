@@ -1,4 +1,5 @@
 #include "core/user_registry.h"
+
 #include <algorithm>
 #include <cctype>
 
@@ -12,6 +13,10 @@ std::pair<const User *, UserRegistryError>
         std::vector<Game *>&& preferred_games)
 {
     Error error = validate_user_info(username, name, last_name);
+
+    if (preferred_games.empty())
+        error |= ErrorNoPreferredGames;
+
     if (error)
         return std::make_pair(nullptr, error);
 
@@ -78,9 +83,20 @@ bool UserRegistryPolicy::is_last_name_correct(std::string_view last_name)
     if (! ('A' <= last_name.front() && last_name.front() <= 'Z'))
         return false;
 
-    return std::all_of(last_name.begin(), last_name.end() - 1,
-            [](char c){ return ::isalpha(c) || c == '\''; }) &&
-        ::isalpha(last_name.back());
+    constexpr char allowed_quote = '\'';
+
+    for (std::size_t i = 0; i < last_name.size(); ++i) {
+        if (last_name[i] == allowed_quote) {
+            if (i > 0 && i < last_name.size() - 1)
+                continue;
+        } else if (std::isalpha(last_name[i])) {
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 }

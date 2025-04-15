@@ -9,10 +9,12 @@
 
 namespace matchmaker::gui {
 
+class MainWindowEndpoint;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT;
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(MainWindowEndpoint& endpoint, QWidget *parent = nullptr);
 
 private:
     MenuBar *menu_bar;
@@ -23,6 +25,9 @@ private:
 private slots:
     void toggle_dashboard();
     void toggle_user_list();
+};
+
+class MainWindowEndpoint : public AddUserDialogEndpoint {
 };
 
 }

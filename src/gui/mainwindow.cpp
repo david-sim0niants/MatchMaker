@@ -6,7 +6,7 @@
 
 namespace matchmaker::gui {
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(MainWindowEndpoint& endpoint, QWidget *parent) :
     QMainWindow(parent)
 {
     setWindowTitle("Match Maker");
@@ -20,14 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     dashboard = new Dashboard(centralWidget());
     user_list = new UserList(centralWidget());
-    add_user_dialog = new AddUserDialog(
-            {
-                "Tic-Tac-Toe 3x3",
-                "Tic-Tac-Toe 4x4",
-                "Tic-Tac-Toe 5x5",
-                "Rock-Paper-Scissors"
-            },
-        centralWidget());
+    add_user_dialog = new AddUserDialog(endpoint, centralWidget());
 
     horizontal_layout->addWidget(dashboard);
     horizontal_layout->addWidget(user_list);
