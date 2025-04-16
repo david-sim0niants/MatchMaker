@@ -74,7 +74,7 @@ TEST_F(TimelineTest, RandomlySchedulingAtSpecificTimesRunsInChronologicalOrder)
                 }
             );
 
-    timeline.sync_call(
+    timeline.post(
         [&random_order, &event, &expected_timestamps]
         {
             for (std::size_t i : random_order)
@@ -109,7 +109,7 @@ TEST_F(TimelineTest, SchedulingFromEventToEventAfterDurationWorks)
             }
         );
 
-    timeline.sync_call(event.AsStdFunction());
+    timeline.post(event.AsStdFunction());
 
     timeline.run();
 }
@@ -121,14 +121,14 @@ TEST_F(TimelineTest, ScheduleCancellationWorks)
     EXPECT_CALL(event, Call).Times(Exactly(1));
 
     EventHandle event_handle;
-    timeline.sync_call(
+    timeline.post(
             [&event, &event_handle]
             {
                 event_handle = Timeline::call_at(10ms, event.AsStdFunction());
                 Timeline::call_at(10ms, event.AsStdFunction());
             }
         );
-    timeline.sync_call([&event, &event_handle]{ Timeline::cancel(event_handle); });
+    timeline.post([&event, &event_handle]{ Timeline::cancel(event_handle); });
     timeline.run();
 }
 

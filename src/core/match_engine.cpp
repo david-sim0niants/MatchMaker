@@ -23,12 +23,12 @@ void MatchEngine::run()
 
 void MatchEngine::keep_alive()
 {
-    timeline.sync_call([this]{ sentinel_event = Timeline::call_at(Time::max(), []{});});
+    timeline.post([this]{ sentinel_event = Timeline::call_at(Time::max(), []{});});
 }
 
 void MatchEngine::let_die()
 {
-    timeline.sync_call([this]{ Timeline::cancel(sentinel_event); });
+    timeline.post([this]{ Timeline::cancel(sentinel_event); });
 }
 
 Player& MatchEngine::new_player_for(const User& user)

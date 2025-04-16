@@ -9,9 +9,11 @@
 
 namespace matchmaker::core {
 
+namespace {
+
 static std::pair<std::string_view, std::string_view> find_last_two_words(std::string_view str)
 {
-   // Trim trailing whitespace
+    // Trim trailing whitespace
     size_t end = str.size();
     while (end > 0 && std::isspace(str[end - 1])) {
         --end;
@@ -125,6 +127,8 @@ private:
     misc::Subprocess subprocess;
     GameInstanceObserver *observer;
 };
+
+}
 
 ExecutableGame::ExecutableGame(std::string&& name, std::string&& comm, std::string&& path)
     : Game(std::move(name)), comm(std::move(comm)), path(std::move(path))

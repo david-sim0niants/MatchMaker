@@ -10,16 +10,10 @@ Timeline::Timeline(Waiter& waiter, Time start_time) :
 {
 }
 
-Timeline::~Timeline()
+void Timeline::post(EventCallback&& event_callback)
 {
-    if (is_current())
-        unset_as_current();
-}
-
-void Timeline::sync_call(EventCallback&& event_callback)
-{
-    std::scoped_lock lock {async_immediate_events_mutex};
-    async_immediate_events.emplace_back(std::move(event_callback));
+    std::scoped_lock lock {immediate_events_mutex};
+    immediate_events.emplace_back(std::move(event_callback));
     interrupt();
 }
 
@@ -82,14 +76,15 @@ Time Timeline::get_current_time()
 
 bool Timeline::run_once_internal()
 {
-    set_as_current();
-    DEFER (unset_as_current());
+    Timeline *previous = current;
+    current = this;
+    DEFER ( current = previous; );
 
     {
-        std::scoped_lock lock {async_immediate_events_mutex};
-        for (EventCallback& async_event : async_immediate_events)
+        std::scoped_lock lock {immediate_events_mutex};
+        for (EventCallback& async_event : immediate_events)
             schedule_at(current_time, std::move(async_event));
-        async_immediate_events.clear();
+        immediate_events.clear();
     }
 
     if (events.empty())
@@ -131,22 +126,12 @@ void Timeline::call_callback(EventCallback& callback, Event& handle)
 
 Timeline *Timeline::get_current() noexcept
 {
-    return nested_timelines.empty() ? nullptr : nested_timelines.top();
+    return current;
 }
 
 bool Timeline::is_current() const noexcept
 {
-    return !nested_timelines.empty() && nested_timelines.top() == this;
-}
-
-void Timeline::set_as_current()
-{
-    nested_timelines.push(this);
-}
-
-void Timeline::unset_as_current()
-{
-    nested_timelines.pop();
+    return current == this;
 }
 
 Timeline::Event Timeline::schedule_in(Duration duration, EventCallback&& event_callback)
@@ -195,6 +180,6 @@ void Timeline::interrupt()
     waiter.interrupt();
 }
 
-thread_local std::stack<Timeline *> Timeline::nested_timelines;
+thread_local Timeline *Timeline::current = nullptr;
 
 }

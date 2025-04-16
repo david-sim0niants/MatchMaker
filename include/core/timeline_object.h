@@ -2,7 +2,7 @@
 
 #include "core/timeline.h"
 
-#include <unordered_set>
+#include <set>
 
 namespace matchmaker::core {
 
@@ -21,7 +21,7 @@ protected:
     virtual void exec() = 0;
 
 private:
-    std::unordered_set<EventHandle, EventHandleHasher> awaiting_events;
+    std::set<EventHandle, EventHandleCompare> awaiting_events;
 };
 
 }

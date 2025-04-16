@@ -17,7 +17,7 @@ class MatchArrangerTest : public ::testing::Test {
 protected:
     void SetUp() override
     {
-        timeline.sync_call([this] { player_1.init(); player_2.init(); player_3.init(); });
+        timeline.post([this] { player_1.init(); player_2.init(); player_3.init(); });
     }
 
     misc::PRNG prng {TestConfig::get_prng_seed()};

@@ -20,7 +20,7 @@ protected:
         ON_CALL(mock_waiter, wait_for(_)).WillByDefault(
                 [](Duration duration){ return duration; }
             );
-        timeline.sync_call([this]{ player.init(); });
+        timeline.post([this]{ player.init(); });
         timeline.run_once();
     }
 
@@ -63,7 +63,7 @@ TEST_F(PlayerTest, PlayerBecomesBusyWhenPlaying)
     timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Waiting);
 
-    timeline.sync_call([&]{ player.play(mock_match); });
+    timeline.post([&]{ player.play(mock_match); });
     timeline.run_once();
     ASSERT_EQ(player.get_current_state(), Player::State::Busy);
 }
@@ -73,11 +73,11 @@ TEST_F(PlayerTest, PlayerBecomesFreeAfterFinishingPlaying)
     timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Waiting);
 
-    timeline.sync_call([&]{ player.play(mock_match); });
+    timeline.post([&]{ player.play(mock_match); });
     timeline.run_once();
     EXPECT_EQ(player.get_current_state(), Player::State::Busy);
 
-    timeline.sync_call([&]{ player.finish_playing(); });
+    timeline.post([&]{ player.finish_playing(); });
     timeline.run_once();
     ASSERT_EQ(player.get_current_state(), Player::State::Free);
 }
@@ -85,14 +85,14 @@ TEST_F(PlayerTest, PlayerBecomesFreeAfterFinishingPlaying)
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToPlayWhenNotWaiting)
 {
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
-    timeline.sync_call([&]{ player.play(mock_match); });
+    timeline.post([&]{ player.play(mock_match); });
     ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 
 TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToFinishPlayingWhenNotBusy)
 {
     EXPECT_EQ(player.get_current_state(), Player::State::Free);
-    timeline.sync_call([&]{ player.finish_playing(); });
+    timeline.post([&]{ player.finish_playing(); });
     ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 

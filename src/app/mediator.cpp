@@ -2,6 +2,8 @@
 
 namespace matchmaker::app {
 
+namespace {
+
 class UserDescriptorImpl : public gui::UserDescriptor {
 public:
     inline static gui::UserDescriptor make(const core::User *user)
@@ -53,6 +55,8 @@ private:
 inline gui::UserDescriptor make_user_descriptor(const core::User *user)
 {
     return UserDescriptorImpl::make(user);
+}
+
 }
 
 Mediator::Mediator(

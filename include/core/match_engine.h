@@ -40,19 +40,19 @@ public:
     template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
     void add_user(const User& user, F on_add = []{})
     {
-        timeline.sync_call([this, &user, on_add]{ new_player_for(user).init(); on_add(); });
+        timeline.post([this, &user, on_add]{ new_player_for(user).init(); on_add(); });
     }
 
     template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
     void rem_user(const User& user, F on_rem = []{})
     {
-        timeline.sync_call([this, &user, on_rem]{ del_player_of(user)->deinit(); on_rem(); });
+        timeline.post([this, &user, on_rem]{ del_player_of(user)->deinit(); on_rem(); });
     }
 
     template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
     void rem_all_users(F on_rem = []{})
     {
-        timeline.sync_call([this, on_rem]{ del_all_players(); });
+        timeline.post([this, on_rem]{ del_all_players(); });
     }
 
 private:

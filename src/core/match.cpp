@@ -81,7 +81,7 @@ void Match::finalize()
 void Match::notify_finished(GameWinner winner)
 {
     assert(endpoint != nullptr);
-    endpoint->get_timeline().sync_call([this, winner]() { finish(winner); });
+    endpoint->get_timeline().post([this, winner]() { finish(winner); });
 }
 
 }

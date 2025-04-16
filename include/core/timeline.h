@@ -6,7 +6,6 @@
 #include <functional>
 #include <map>
 #include <mutex>
-#include <stack>
 #include <variant>
 
 namespace matchmaker::core {
@@ -64,17 +63,9 @@ public:
         }
     };
 
-    struct EventHasher {
-        std::size_t operator()(const Event& event) const noexcept
-        {
-            return std::hash<Time::rep>{}(event.time.count()) ^ std::hash<EventID>{}(event.id);
-        }
-    };
-
     using EventCallback = std::variant<std::function<void()>, std::function<void(Event event)>>;
 
     explicit Timeline(Waiter& waiter, Time start_time = 0ms);
-    ~Timeline();
 
     Timeline(const Timeline&) = delete;
     Timeline& operator=(const Timeline&) = delete;
@@ -82,7 +73,7 @@ public:
     Timeline(Timeline&&) = delete;
     Timeline& operator=(Timeline&&) = delete;
 
-    void sync_call(EventCallback&& event_callback);
+    void post(EventCallback&& event_callback);
 
     std::pair<Time, bool> run_once();
     std::pair<Time, bool> run_till_next_time();
@@ -101,8 +92,6 @@ private:
 
     static Timeline *get_current() noexcept;
     bool is_current() const noexcept;
-    void set_as_current();
-    void unset_as_current();
 
     Event schedule_in(Duration duration, EventCallback&& event_callback);
     Event schedule_at(Time time, EventCallback&& event_callback);
@@ -115,16 +104,15 @@ private:
     Waiter& waiter;
 
     std::map<Event, EventCallback, EventCompare> events;
-    std::mutex async_immediate_events_mutex;
-    std::vector<EventCallback> async_immediate_events;
+    std::mutex immediate_events_mutex;
+    std::vector<EventCallback> immediate_events;
 
     Time current_time;
 
-    static thread_local std::stack<Timeline *> nested_timelines;
+    static thread_local Timeline *current;
 };
 
 using EventHandle = Timeline::Event;
 using EventHandleCompare = Timeline::EventCompare;
-using EventHandleHasher = Timeline::EventHasher;
 
 }
