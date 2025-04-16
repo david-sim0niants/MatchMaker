@@ -34,12 +34,19 @@ void AddUserDialog::on_ok_click()
     QString first_name = first_name_text->text();
     QString last_name = last_name_text->text();
 
-    QStringList selected_games;
+    QStringList preferred_games;
     for (QCheckBox *checkbox : game_checkboxes)
         if (checkbox->isChecked())
-            selected_games.push_back(checkbox->text());
+            preferred_games.push_back(checkbox->text());
 
-    AddUserDialogError e = endpoint.add_user(username, first_name, last_name, selected_games);
+    AddUserDialogError e = endpoint.add_user(
+            username, first_name, last_name, preferred_games,
+            [this](UserDescriptor user)
+            {
+                emit added_user(user);
+            }
+        );
+
     if (e) {
         QString err_msg = make_error_message_from(e);
         error_label->setText(err_msg);
@@ -58,6 +65,7 @@ void AddUserDialog::init()
 {
     error_label->setStyleSheet("color: red;");
     error_label->hide();
+    ok_button->setFocus();
 
     init_layout();
 

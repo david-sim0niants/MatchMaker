@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gui/user_descriptor.h"
+
 #include <QDialog>
 #include <QVector>
 #include <QVBoxLayout>
@@ -14,6 +16,7 @@ namespace matchmaker::gui {
 class AddUserDialogEndpoint;
 
 class AddUserDialog : public QDialog {
+    Q_OBJECT
 public:
     enum : int {
         ErrorNone = 0,
@@ -29,6 +32,9 @@ public:
     AddUserDialog(AddUserDialogEndpoint& endpoint, QWidget *parent = nullptr);
 
     int exec() override;
+
+signals:
+    void added_user(UserDescriptor user);
 
 private slots:
     void on_ok_click();
@@ -58,13 +64,16 @@ private:
 
 using AddUserDialogError = AddUserDialog::Error;
 
+using AddUserCallback = std::function<void (UserDescriptor user)>;
+
 class AddUserDialogEndpoint {
 public:
     virtual AddUserDialogError add_user(
             const QString& username,
             const QString& name,
             const QString& last_name,
-            const QStringList& preferred_games) = 0;
+            const QStringList& preferred_games,
+            gui::AddUserCallback&& on_added_user) = 0;
     virtual QStringList get_available_games() const = 0;
 };
 

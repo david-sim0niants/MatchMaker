@@ -16,7 +16,8 @@ public:
             const QString& username,
             const QString& name,
             const QString& last_name,
-            const QStringList& preferred_games) override;
+            const QStringList& preferred_games,
+            gui::AddUserCallback&& on_added_user) override;
     QStringList get_available_games() const override;
 
 private:

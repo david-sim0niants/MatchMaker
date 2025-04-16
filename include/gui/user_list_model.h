@@ -1,5 +1,7 @@
 #pragma once
 
+#include "user_descriptor.h"
+
 #include <QAbstractListModel>
 
 namespace matchmaker::gui {
@@ -18,6 +20,17 @@ public:
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+
+    void add_user(UserDescriptor user);
+
+private:
+    QList<UserDescriptor> users;
+};
+
+class UserListEndpoint {
+public:
+    virtual QStringList get_available_games() = 0;
+    virtual QList<UserDescriptor> get_initial_users() = 0;
 };
 
 }

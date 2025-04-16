@@ -1,7 +1,4 @@
 #include "gui/user_list.h"
-#include "gui/user_list_model.h"
-#include "gui/user_list_delegate.h"
-#include "gui/user_list_filter.h"
 
 #include <QWidget>
 #include <QBoxLayout>
@@ -11,11 +8,17 @@ namespace matchmaker::gui {
 
 UserList::UserList(QWidget *parent) :
     QWidget(parent),
-    table_view(new QTableView(this)),
+    model(new UserListModel(this)),
     delegate(new UserListDelegate(this)),
-    user_list_filter(new UserListFilter(this))
+    user_list_filter(new UserListFilter(this)),
+    table_view(new QTableView(this))
 {
     init();
+}
+
+void UserList::on_added_user(UserDescriptor user)
+{
+    model->add_user(user);
 }
 
 void UserList::init()
@@ -33,9 +36,10 @@ void UserList::on_filter_users(QStringView pattern)
 
 void UserList::init_table_view()
 {
-    table_view->setModel(new UserListModel(this));
+    table_view->setModel(model);
     table_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    table_view->setSelectionMode(QAbstractItemView::NoSelection);
+    table_view->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+    table_view->setSortingEnabled(true);
     table_view->setItemDelegate(delegate);
     table_view->show();
 }
