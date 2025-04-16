@@ -66,7 +66,7 @@ private:
 
 class PlayerEndpoint {
 public:
-    virtual void request_match(Player& player, Game& game) = 0;
+    virtual void request_match(Player& player, const Game& game) = 0;
     virtual void withdraw_match(const Player& player) = 0;
 };
 

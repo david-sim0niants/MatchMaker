@@ -9,8 +9,7 @@
 
 namespace matchmaker::core {
 
-static std::pair<std::string_view, std::string_view>
-    find_last_two_words(std::string_view str)
+static std::pair<std::string_view, std::string_view> find_last_two_words(std::string_view str)
 {
    // Trim trailing whitespace
     size_t end = str.size();
@@ -127,8 +126,8 @@ private:
     GameInstanceObserver *observer;
 };
 
-ExecutableGame::ExecutableGame(std::string&& name, std::string&& path)
-    : name(std::move(name)), path(std::move(path))
+ExecutableGame::ExecutableGame(std::string&& name, std::string&& comm, std::string&& path)
+    : Game(std::move(name)), comm(std::move(comm)), path(std::move(path))
 {
 }
 
@@ -141,7 +140,7 @@ std::unique_ptr<GameInstance> ExecutableGame::launch(
     const char *player_b_name = player_b.get_user().get_username();
 
     return std::make_unique<ExecutableGameInstance>(
-            path.c_str(), name.c_str(), player_a_name, player_b_name, observer);
+            path.c_str(), comm.c_str(), player_a_name, player_b_name, observer);
 }
 
 }

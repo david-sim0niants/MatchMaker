@@ -19,7 +19,7 @@ MainWindow::MainWindow(MainWindowEndpoint& endpoint, QWidget *parent) :
     centralWidget()->setLayout(horizontal_layout);
 
     dashboard = new Dashboard(centralWidget());
-    user_list = new UserList(centralWidget());
+    user_list = new UserList(endpoint, centralWidget());
     add_user_dialog = new AddUserDialog(endpoint, centralWidget());
 
     horizontal_layout->addWidget(dashboard);

@@ -11,14 +11,24 @@ class Player;
 
 class Game {
 public:
-    virtual ~Game() = default;
+    explicit Game(std::string&& name = {}) : name(std::move(name))
+    {
+    }
 
-    virtual std::string_view get_name() const noexcept = 0;
+    virtual ~Game() = default;
 
     virtual std::unique_ptr<GameInstance> launch(
             const Player& player_a,
             const Player& player_b,
             GameInstanceObserver *observer = nullptr) const = 0;
+
+    inline const std::string& get_name() const noexcept
+    {
+        return name;
+    }
+
+private:
+    std::string name;
 };
 
 class GameException : public Exception {

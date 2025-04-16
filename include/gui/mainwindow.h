@@ -27,7 +27,7 @@ private slots:
     void toggle_user_list();
 };
 
-class MainWindowEndpoint : public AddUserDialogEndpoint {
+class MainWindowEndpoint : public UserListEndpoint, public AddUserDialogEndpoint {
 };
 
 }

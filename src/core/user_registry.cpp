@@ -10,7 +10,7 @@ std::pair<const User *, UserRegistryError>
         std::string_view username,
         std::string&& name,
         std::string&& last_name,
-        std::vector<Game *>&& preferred_games)
+        std::vector<const Game *>&& preferred_games)
 {
     Error error = validate_user_info(username, name, last_name);
 

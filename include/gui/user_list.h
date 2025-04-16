@@ -10,10 +10,12 @@
 
 namespace matchmaker::gui {
 
+class UserListEndpoint;
+
 class UserList : public QWidget {
     Q_OBJECT;
 public:
-    explicit UserList(QWidget *parent = nullptr);
+    explicit UserList(UserListEndpoint& endpoint, QWidget *parent = nullptr);
 
 signals:
     void clicked_add_user();
@@ -30,10 +32,16 @@ private:
     void init_filter();
     void init_layout();
 
+    UserListEndpoint& endpoint;
     UserListModel *model;
     UserListDelegate *delegate;
     UserListFilter *user_list_filter;
     QTableView *table_view;
+};
+
+class UserListEndpoint {
+public:
+    virtual QList<UserDescriptor> get_initial_users() const = 0;
 };
 
 }

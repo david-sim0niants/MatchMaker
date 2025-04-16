@@ -65,7 +65,6 @@ void AddUserDialog::init()
 {
     error_label->setStyleSheet("color: red;");
     error_label->hide();
-    ok_button->setFocus();
 
     init_layout();
 
@@ -98,6 +97,7 @@ void AddUserDialog::refresh()
     refresh_text_fields();
     refresh_error_label();
     refresh_checkboxes();
+    ok_button->setFocus();
 }
 
 void AddUserDialog::refresh_text_fields()

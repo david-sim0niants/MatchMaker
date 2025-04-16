@@ -8,7 +8,7 @@ MatchMediator::MatchMediator(RatingMap& rating_map, Timeline& timeline) :
 {
 }
 
-void MatchMediator::request_match(Player& player, Game& game)
+void MatchMediator::request_match(Player& player, const Game& game)
 {
     Rating rating = get_player_rating_for_game(game, player);
     auto match = match_arranger.find_or_request_match(player, rating, game);

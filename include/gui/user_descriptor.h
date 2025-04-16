@@ -9,46 +9,46 @@ class UserDescriptor {
 public:
     inline QString get_username() const
     {
-        return methods.get_username(user);
+        return ops.get_username(user);
     }
 
     inline QString get_first_name() const
     {
-        return methods.get_first_name(user);
+        return ops.get_first_name(user);
     }
 
     inline QString get_last_name() const
     {
-        return methods.get_last_name(user);
+        return ops.get_last_name(user);
     }
 
     inline QStringList get_preferred_games() const
     {
-        return methods.get_preferred_games(user);
+        return ops.get_preferred_games(user);
     }
 
 protected:
-    class UserMethods {
+    class Ops {
     public:
-        QString (*get_username)(const void *user);
-        QString (*get_first_name)(const void *user);
-        QString (*get_last_name)(const void *user);
-        QStringList (*get_preferred_games)(const void *user);
+        virtual QString get_username(const void *user) const = 0;
+        virtual QString get_first_name(const void *user) const = 0;
+        virtual QString get_last_name(const void *user) const = 0;
+        virtual QStringList get_preferred_games(const void *user) const = 0;
     };
 
-    inline static UserDescriptor make(const void *user, const UserMethods& methods)
+    inline static UserDescriptor make(const void *user, const Ops& ops)
     {
-        return UserDescriptor(user, methods);
+        return UserDescriptor(user, ops);
     }
 
 private:
-    UserDescriptor(const void *user, const UserMethods& impl) :
-        user(user), methods(impl)
+    UserDescriptor(const void *user, const Ops& ops) :
+        user(user), ops(ops)
     {
     }
 
     const void *user;
-    const UserMethods& methods;
+    const Ops& ops;
 };
 
 

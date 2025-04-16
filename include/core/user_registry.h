@@ -24,7 +24,7 @@ public:
             std::string_view username,
             std::string&& name,
             std::string&& last_name,
-            std::vector<Game *>&& preferred_games);
+            std::vector<const Game *>&& preferred_games);
     Error unregister_user(std::string_view username);
 
     static Error validate_user_info(

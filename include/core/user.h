@@ -11,7 +11,7 @@ namespace matchmaker::core {
 class User {
 public:
     User(std::string_view username, std::string&& name, std::string&& last_name,
-         std::vector<Game *>&& preferred_games);
+         std::vector<const Game *>&& preferred_games);
 
     inline const char *get_username() const noexcept
     {
@@ -33,7 +33,7 @@ public:
         return last_name;
     }
 
-    inline const std::vector<Game *>& get_preferred_games() const noexcept
+    inline const std::vector<const Game *>& get_preferred_games() const noexcept
     {
         return preferred_games;
     }
@@ -44,7 +44,7 @@ private:
     char username[max_username_length + 1] {};
     std::size_t username_length;
     std::string name, last_name;
-    std::vector<Game *> preferred_games;
+    std::vector<const Game *> preferred_games;
 };
 
 }

@@ -6,9 +6,10 @@
 
 namespace matchmaker::gui {
 
-UserList::UserList(QWidget *parent) :
+UserList::UserList(UserListEndpoint& endpoint, QWidget *parent) :
     QWidget(parent),
-    model(new UserListModel(this)),
+    endpoint(endpoint),
+    model(new UserListModel(endpoint.get_initial_users(), this)),
     delegate(new UserListDelegate(this)),
     user_list_filter(new UserListFilter(this)),
     table_view(new QTableView(this))

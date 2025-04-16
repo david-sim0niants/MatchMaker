@@ -15,7 +15,7 @@ class MatchMediator : public PlayerEndpoint, public MatchEndpoint {
 public:
     explicit MatchMediator(RatingMap& rating_map, Timeline& timeline);
 
-    void request_match(Player& player, Game& game) override;
+    void request_match(Player& player, const Game& game) override;
     void withdraw_match(const Player& player) override;
     void notify_match_finished(Match& match, Player *winner) override;
     Timeline& get_timeline() const noexcept override;

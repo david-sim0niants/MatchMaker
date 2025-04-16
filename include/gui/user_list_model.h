@@ -9,7 +9,7 @@ namespace matchmaker::gui {
 class UserListModel : public QAbstractListModel {
     Q_OBJECT;
 public:
-    using QAbstractListModel::QAbstractListModel;
+    UserListModel(QList<UserDescriptor>&& initial_users, QObject *parent = nullptr);
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
@@ -25,12 +25,6 @@ public:
 
 private:
     QList<UserDescriptor> users;
-};
-
-class UserListEndpoint {
-public:
-    virtual QStringList get_available_games() = 0;
-    virtual QList<UserDescriptor> get_initial_users() = 0;
 };
 
 }

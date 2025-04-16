@@ -2,6 +2,11 @@
 
 namespace matchmaker::gui {
 
+UserListModel::UserListModel(QList<UserDescriptor>&& initial_users, QObject *parent) :
+    users(std::move(initial_users)), QAbstractListModel(parent)
+{
+}
+
 Qt::ItemFlags UserListModel::flags(const QModelIndex &index) const
 {
     return Qt::ItemIsEnabled;
