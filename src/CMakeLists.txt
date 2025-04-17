@@ -1,6 +1,6 @@
 set(TARGET_NAME match_maker)
 
-add_executable(${TARGET_NAME} main.cpp main_mediator.cpp)
+add_executable(${TARGET_NAME} main.cpp)
 
 set_target_properties(${TARGET_NAME} PROPERTIES
     OUTPUT_NAME match-maker

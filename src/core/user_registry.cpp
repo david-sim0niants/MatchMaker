@@ -24,15 +24,15 @@ std::pair<const User *, UserRegistryError>
     if (user_it != users.end())
         return std::make_pair(user_it->second.get(), ErrorUserAlreadyExists);
 
-    user_it = users.emplace(username,
-            std::make_unique<User>(
-                username,
-                std::move(name),
-                std::move(last_name),
-                std::move(preferred_games))).first;
+    auto user = std::make_unique<User>(
+            username,
+            std::move(name),
+            std::move(last_name),
+            std::move(preferred_games)
+        );
+    user_it = users.emplace(user->get_username(), std::move(user)).first;
 
-    const User *user = user_it->second.get();
-    return std::make_pair(user, ErrorNone);
+    return std::make_pair(user_it->second.get(), ErrorNone);
 }
 
 UserRegistryError UserRegistry::unregister_user(std::string_view username)

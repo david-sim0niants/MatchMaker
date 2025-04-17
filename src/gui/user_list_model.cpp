@@ -1,10 +1,19 @@
 #include "gui/user_list_model.h"
+#include "gui/user_property.h"
+
+#include <algorithm>
 
 namespace matchmaker::gui {
 
-UserListModel::UserListModel(QList<UserDescriptor>&& initial_users, QObject *parent) :
-    users(std::move(initial_users)), QAbstractListModel(parent)
+UserListModel::UserListModel(
+        QList<UserDescriptor>&& initial_users,
+        Qt::SortOrder initial_order,
+        QObject *parent) :
+    users(std::move(initial_users)),
+    current_order(initial_order),
+    QAbstractListModel(parent)
 {
+    std::sort(users.begin(), users.end(), user_compare);
 }
 
 Qt::ItemFlags UserListModel::flags(const QModelIndex &index) const
@@ -18,14 +27,14 @@ QVariant UserListModel::headerData(int section, Qt::Orientation orientation, int
         return QVariant();
 
     if (orientation == Qt::Horizontal) {
-        switch (section) {
-        case 0:
+        switch (UserProperty(section)) {
+        case UserProperty::Username:
             return "Username";
-        case 1:
+        case UserProperty::FirstName:
             return "First name";
-        case 2:
+        case UserProperty::LastName:
             return "Last name";
-        case 3:
+        case UserProperty::PreferredGames:
             return "Preferred games";
         default:
             return QVariant();
@@ -52,14 +61,14 @@ QVariant UserListModel::data(const QModelIndex& index, int role) const
         int user_idx = index.row();
         UserDescriptor user = users[user_idx];
 
-        switch (index.column()) {
-        case 0:
+        switch (UserProperty(index.column())) {
+        case UserProperty::Username:
             return user.get_username();
-        case 1:
+        case UserProperty::FirstName:
             return user.get_first_name();
-        case 2:
+        case UserProperty::LastName:
             return user.get_last_name();
-        case 3:
+        case UserProperty::PreferredGames:
             return user.get_preferred_games().join(',');
         default:
             return QVariant();
@@ -77,12 +86,71 @@ int UserListModel::columnCount(const QModelIndex& parent) const
     return 4;
 }
 
+void UserListModel::sort(int column, Qt::SortOrder order)
+{
+    if (column > 2)
+        return;
+
+    UserProperty property = UserProperty(column);
+    if (user_compare.get_prioritized_property() == property) {
+        if (current_order != order) {
+            reverse();
+            current_order = order;
+        }
+        return;
+    }
+
+    user_compare.prioritize(property);
+    current_order = order;
+
+    switch (property) {
+    case UserProperty::Username:
+        sort<UserProperty::Username>();
+        break;
+    case UserProperty::FirstName:
+        sort<UserProperty::FirstName>();
+        break;
+    case UserProperty::LastName:
+        sort<UserProperty::LastName>();
+        break;
+    default:
+        break;
+    }
+}
+
 void UserListModel::add_user(UserDescriptor user)
 {
-    int row = rowCount() - 1;
-    beginInsertRows(QModelIndex(), row, row);
-    users.append(user);
+    int index = find_user(user);
+    beginInsertRows(QModelIndex(), index, index);
+    users.insert(users.begin() + index, user);
     endInsertRows();
+}
+
+int UserListModel::find_user(UserDescriptor user) const
+{
+    return current_order == Qt::AscendingOrder
+        ?
+        std::upper_bound(users.begin(), users.end(), user, user_compare) - users.begin()
+        :
+        std::upper_bound(users.rbegin(), users.rend(), user, user_compare) - users.rend();
+}
+
+void UserListModel::reverse()
+{
+    beginResetModel();
+    std::reverse(users.begin(), users.end());
+    endResetModel();
+}
+
+template<UserProperty property> void UserListModel::sort()
+{
+    UserPropertyCompare<property> partial_user_compare;
+    beginResetModel();
+    if (current_order == Qt::AscendingOrder)
+        std::stable_sort(users.begin(), users.end(), partial_user_compare);
+    else
+        std::stable_sort(users.rbegin(), users.rend(), partial_user_compare);
+    endResetModel();
 }
 
 }
