@@ -9,7 +9,7 @@ namespace matchmaker::app {
 using namespace core;
 
 void ConsolePlayerObserver::on_state_change(
-        const core::Player& player, Player::State state, Time time)
+        const Player& player, Player::State state, Time time)
 {
     misc::print_to(std::cout, player.get_user().get_username(),
             " changed state to: ", state, " at time: ", time);

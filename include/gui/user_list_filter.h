@@ -11,7 +11,7 @@ public:
     UserListFilter(QWidget *parent = nullptr);
 
 signals:
-    void trigerred(QStringView pattern) const;
+    void trigerred(const QString& pattern) const;
 
 private slots:
     void on_click_filter();

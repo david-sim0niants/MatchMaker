@@ -5,8 +5,9 @@
 #include "gui/user_list_delegate.h"
 #include "gui/user_list_filter.h"
 
-#include <QTableView>
 #include <QWidget>
+#include <QTableView>
+#include <QSortFilterProxyModel>
 
 namespace matchmaker::gui {
 
@@ -24,7 +25,7 @@ public slots:
     void on_added_user(UserDescriptor user);
 
 private slots:
-    void on_filter_users(QStringView pattern);
+    void on_filter_users(const QString& pattern);
 
 private:
     void init();
@@ -34,6 +35,7 @@ private:
 
     UserListEndpoint& endpoint;
     UserListModel *model;
+    QSortFilterProxyModel *model_proxy;
     UserListDelegate *delegate;
     UserListFilter *user_list_filter;
     QTableView *table_view;

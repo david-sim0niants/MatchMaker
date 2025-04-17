@@ -8,6 +8,7 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QPushButton>
 #include <QLabel>
 
@@ -36,11 +37,9 @@ public:
 signals:
     void added_user(UserDescriptor user);
 
-private slots:
-    void on_ok_click();
-    void on_cancel_click();
-
 private:
+    void accept() override;
+
     void init();
     void init_layout();
 
@@ -48,6 +47,7 @@ private:
     void refresh_text_fields();
     void refresh_error_label();
     void refresh_checkboxes();
+    void refresh_tab_order();
     void setup_checkboxes(const QStringList& labels);
     void reset_checkboxes();
 
@@ -58,8 +58,8 @@ private:
     QList<QCheckBox *> game_checkboxes;
     QGridLayout *checkbox_layout;
     QLabel *error_label;
-    QPushButton *cancel_button;
-    QPushButton *ok_button;
+    QDialogButtonBox *button_box;
+    QPushButton *cancel_button, *ok_button;
 };
 
 using AddUserDialogError = AddUserDialog::Error;

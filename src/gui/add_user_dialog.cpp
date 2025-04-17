@@ -16,8 +16,9 @@ AddUserDialog::AddUserDialog(AddUserDialogEndpoint& endpoint, QWidget *parent) :
     last_name_text(new QLineEdit(this)),
     checkbox_layout(new QGridLayout),
     error_label(new QLabel(this)),
-    cancel_button(new QPushButton("Cancel", this)),
-    ok_button(new QPushButton("OK", this))
+    button_box(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
+    cancel_button(button_box->button(QDialogButtonBox::Cancel)),
+    ok_button(button_box->button(QDialogButtonBox::Ok))
 {
     init();
 }
@@ -28,7 +29,7 @@ int AddUserDialog::exec()
     return QDialog::exec();
 }
 
-void AddUserDialog::on_ok_click()
+void AddUserDialog::accept()
 {
     QString username = username_text->text();
     QString first_name = first_name_text->text();
@@ -52,13 +53,8 @@ void AddUserDialog::on_ok_click()
         error_label->setText(err_msg);
         error_label->show();
     } else {
-        accept();
+        QDialog::accept();
     }
-}
-
-void AddUserDialog::on_cancel_click()
-{
-    reject();
 }
 
 void AddUserDialog::init()
@@ -67,9 +63,11 @@ void AddUserDialog::init()
     error_label->hide();
 
     init_layout();
+    ok_button->setDefault(true);
+    ok_button->setFocus();
 
-    connect(ok_button, &QPushButton::clicked, this, &AddUserDialog::on_ok_click);
-    connect(cancel_button, &QPushButton::clicked, this, &AddUserDialog::on_cancel_click);
+    connect(button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 void AddUserDialog::init_layout()
@@ -97,6 +95,7 @@ void AddUserDialog::refresh()
     refresh_text_fields();
     refresh_error_label();
     refresh_checkboxes();
+    refresh_tab_order();
     ok_button->setFocus();
 }
 
@@ -117,6 +116,17 @@ void AddUserDialog::refresh_checkboxes()
 {
     reset_checkboxes();
     setup_checkboxes(endpoint.get_available_games());
+}
+
+void AddUserDialog::refresh_tab_order()
+{
+    if (game_checkboxes.empty())
+        return;
+
+    setTabOrder(last_name_text, game_checkboxes.front());
+    for (qsizetype i = 1; i < game_checkboxes.size(); ++i)
+        setTabOrder(game_checkboxes[i - 1], game_checkboxes[i]);
+    setTabOrder(game_checkboxes.back(), cancel_button);
 }
 
 void AddUserDialog::setup_checkboxes(const QStringList& labels)

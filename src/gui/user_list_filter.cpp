@@ -17,6 +17,7 @@ void UserListFilter::init()
 {
     QPushButton *push_button = new QPushButton("Filter", this);
     connect(push_button, &QPushButton::clicked, this, &UserListFilter::on_click_filter);
+    connect(pattern_text, &QLineEdit::returnPressed, this, &UserListFilter::on_click_filter);
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->addWidget(new QLabel("Username filter", this));
