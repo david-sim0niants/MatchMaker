@@ -4,6 +4,8 @@
 #include <QBoxLayout>
 #include <QHeaderView>
 #include <QRegularExpression>
+#include <QMenu>
+#include <QContextMenuEvent>
 
 namespace matchmaker::gui {
 
@@ -54,10 +56,40 @@ void UserList::on_added_user(UserDescriptor user)
     model->add_user(user);
 }
 
+void UserList::on_rem_selected_user()
+{
+    if (! has_selection())
+        return;
+
+    auto [first, last] = get_selected_rows();
+    for (int i = first; i <= last; ++i)
+        endpoint.rem_user(model->get_user_at(i));
+
+    model->rem_users(first, last);
+}
+
 void UserList::on_filter_users(const QString& pattern)
 {
     model_proxy->setFilterRegularExpression(
             QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption));
+}
+
+void UserList::on_open_context_menu(const QPoint& pos)
+{
+    QMenu menu (table_view);
+
+    QAction *add_action = new QAction("Add User", this);
+    menu.addAction(add_action);
+
+    QAction *rem_action = new QAction("Remove User", this);
+    menu.addAction(rem_action);
+
+    connect(add_action, &QAction::triggered, this, &UserList::clicked_add_user);
+    connect(rem_action, &QAction::triggered, this, &UserList::on_rem_selected_user);
+
+    rem_action->setEnabled(has_selection());
+
+    menu.exec(table_view->viewport()->mapToGlobal(pos));
 }
 
 void UserList::init()
@@ -76,11 +108,17 @@ void UserList::init_table_view()
     model_proxy->setFilterKeyColumn(username_column);
 
     table_view->setModel(model_proxy);
-    table_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    table_view->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
     table_view->setItemDelegate(delegate);
-    table_view->setSortingEnabled(true);
+    table_view->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(table_view, &QTableView::customContextMenuRequested, this, &UserList::on_open_context_menu);
+
     table_view->sortByColumn(username_column, Qt::AscendingOrder);
+    table_view->setSelectionMode(QAbstractItemView::SingleSelection);
+    table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table_view->setSortingEnabled(true);
+
+    table_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table_view->show();
 }
 
@@ -91,6 +129,18 @@ void UserList::init_layout()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(table_view);
     layout->addWidget(user_list_filter);
+}
+
+bool UserList::has_selection() const
+{
+    QItemSelectionModel *sel = table_view->selectionModel();
+    return sel && sel->hasSelection() && ! sel->selectedRows().isEmpty();
+}
+
+std::pair<int, int> UserList::get_selected_rows() const
+{
+    QItemSelectionModel *sel = table_view->selectionModel();
+    return {sel->selectedRows().first().row(), sel->selectedRows().last().row()};
 }
 
 }

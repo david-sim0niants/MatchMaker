@@ -32,7 +32,7 @@ int App::exec()
     gui::MainWindow main_window {mediator};
 
     match_engine.keep_alive();
-    auto fut_done = match_engine.run_async();
+    auto timeline_thread = std::thread(&core::MatchEngine::run, &match_engine);
 
     main_window.show();
     int status = q_app.exec();
@@ -40,7 +40,7 @@ int App::exec()
     match_engine.let_die();
     match_engine.rem_all_users();
 
-    fut_done.get();
+    timeline_thread.join();
     return status;
 }
 

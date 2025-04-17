@@ -34,15 +34,25 @@ protected:
         virtual QString get_first_name(const void *user) const = 0;
         virtual QString get_last_name(const void *user) const = 0;
         virtual QStringList get_preferred_games(const void *user) const = 0;
+
+        inline const void *get_user_from_descriptor(UserDescriptor descriptor) const noexcept
+        {
+            return descriptor.user;
+        }
     };
 
-    inline static UserDescriptor make(const void *user, const Ops& ops)
+    inline static UserDescriptor make(const void *user, const Ops& ops) noexcept
     {
         return UserDescriptor(user, ops);
     }
 
+    inline const void *get_user() const noexcept
+    {
+        return user;
+    }
+
 private:
-    UserDescriptor(const void *user, const Ops& ops) :
+    UserDescriptor(const void *user, const Ops& ops) noexcept :
         user(user), ops(&ops)
     {
     }

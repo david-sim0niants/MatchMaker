@@ -35,6 +35,9 @@ MainWindow::MainWindow(MainWindowEndpoint& endpoint, QWidget *parent) :
     connect(user_list, &UserList::clicked_add_user,
             [this]{ add_user_dialog->exec(); });
 
+    connect(menu_bar, &MenuBar::clicked_rem_user,
+            user_list, &UserList::on_rem_selected_user);
+
     connect(add_user_dialog, &AddUserDialog::added_user,
             user_list, &UserList::on_added_user);
 

@@ -115,7 +115,7 @@ void AddUserDialog::refresh_error_label()
 void AddUserDialog::refresh_checkboxes()
 {
     reset_checkboxes();
-    setup_checkboxes(endpoint.get_available_games());
+    setup_checkboxes(endpoint.get_games());
 }
 
 void AddUserDialog::refresh_tab_order()

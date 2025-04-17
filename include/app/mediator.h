@@ -22,7 +22,10 @@ public:
             const QString& last_name,
             const QStringList& preferred_games,
             gui::AddUserCallback&& on_added_user) override;
-    QStringList get_available_games() const override;
+
+    void rem_user(gui::UserDescriptor user) override;
+
+    QStringList get_games() const override;
 
 private:
     std::vector<const core::Game *>

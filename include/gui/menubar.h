@@ -12,7 +12,7 @@ public:
 signals:
     void clicked_save_dashboard_file() const;
     void clicked_add_user() const;
-    void clicked_del_user() const;
+    void clicked_rem_user() const;
     void clicked_show_hide_dashboard() const;
     void clicked_show_hide_user_list() const;
 };

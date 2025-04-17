@@ -29,8 +29,13 @@ void Player::deinit()
 {
     if (! Timeline::running())
         throw PlayerException("attempt to deinitialize a player outside timeline");
+
     if (current_match)
         leave_match();
+
+    if (state == State::Waiting)
+        endpoint.withdraw_match(*this);
+
     cancel_awaiting_events();
     change_state(State::Created);
 }

@@ -6,13 +6,18 @@ namespace {
 
 class UserDescriptorImpl : public gui::UserDescriptor {
 public:
-    inline static gui::UserDescriptor make(const core::User *user)
+    inline static gui::UserDescriptor make(const core::User *user) noexcept
     {
         return gui::UserDescriptor::make(user, ops);
     }
 
+    inline static const core::User *obtain_user_from(UserDescriptor ud) noexcept
+    {
+        return cast_user(ops.get_user_from_descriptor(ud));
+    }
+
 private:
-    inline static const core::User *get_user(const void *user) noexcept
+    inline static const core::User *cast_user(const void *user) noexcept
     {
         return static_cast<const core::User *>(user);
     }
@@ -26,22 +31,22 @@ private:
     public:
         QString get_username(const void *user) const override
         {
-            return QString::fromUtf8(get_user(user)->get_username());
+            return QString::fromUtf8(cast_user(user)->get_username());
         }
 
         QString get_first_name(const void *user) const override
         {
-            return make_qstring_from_strview(get_user(user)->get_name());
+            return make_qstring_from_strview(cast_user(user)->get_name());
         }
 
         QString get_last_name(const void *user) const override
         {
-            return make_qstring_from_strview(get_user(user)->get_lastname());
+            return make_qstring_from_strview(cast_user(user)->get_lastname());
         }
 
         QStringList get_preferred_games(const void *user) const override
         {
-            auto games = get_user(user)->get_preferred_games();
+            auto games = cast_user(user)->get_preferred_games();
             QStringList game_names (games.size());
             for (std::size_t i = 0; i < games.size(); ++i)
                 game_names[i] = make_qstring_from_strview(games[i]->get_name());
@@ -52,9 +57,14 @@ private:
     inline static const OpsImpl ops;
 };
 
-inline gui::UserDescriptor make_user_descriptor(const core::User *user)
+inline gui::UserDescriptor make_user_descriptor(const core::User *user) noexcept
 {
     return UserDescriptorImpl::make(user);
+}
+
+inline const core::User *obtain_user_from_descriptor(gui::UserDescriptor ud) noexcept
+{
+    return UserDescriptorImpl::obtain_user_from(ud);
 }
 
 }
@@ -98,7 +108,13 @@ gui::AddUserDialogError Mediator::add_user(
     return error;
 }
 
-QStringList Mediator::get_available_games() const
+void Mediator::rem_user(gui::UserDescriptor ud)
+{
+    const core::User *user = UserDescriptorImpl::obtain_user_from(ud);
+    match_engine.rem_user(*user, [this, user]{ user_registry.unregister_user(*user); });
+}
+
+QStringList Mediator::get_games() const
 {
     auto games = game_registry.get_games();
     QStringList available_games (games.size());

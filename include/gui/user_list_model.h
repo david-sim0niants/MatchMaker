@@ -21,7 +21,10 @@ public:
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
 
+    UserDescriptor get_user_at(int index) const;
     void add_user(UserDescriptor user);
+    void rem_user_at(int index);
+    void rem_users(int from, int to);
 
 private:
     QList<UserDescriptor> users;

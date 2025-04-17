@@ -17,7 +17,9 @@ UserListModel::UserListModel(QList<UserDescriptor>&& initial_users, QObject *par
 
 Qt::ItemFlags UserListModel::flags(const QModelIndex &index) const
 {
-    return Qt::ItemIsEnabled;
+    if (index.row() < rowCount() - 1)
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    return {};
 }
 
 QVariant UserListModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -81,11 +83,30 @@ int UserListModel::columnCount(const QModelIndex& parent) const
     return 4;
 }
 
+UserDescriptor UserListModel::get_user_at(int index) const
+{
+    return users[index];
+}
+
 void UserListModel::add_user(UserDescriptor user)
 {
     beginInsertRows(QModelIndex(), users.size(), users.size());
     users.append(user);
     endInsertRows();
+}
+
+void UserListModel::rem_user_at(int index)
+{
+    beginRemoveRows(QModelIndex(), index, index);
+    users.removeAt(index);
+    endRemoveRows();
+}
+
+void UserListModel::rem_users(int from, int to)
+{
+    beginRemoveRows(QModelIndex(), from, to);
+    users.erase(users.begin() + from, users.begin() + to + 1);
+    endRemoveRows();
 }
 
 }

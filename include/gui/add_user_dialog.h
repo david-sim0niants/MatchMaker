@@ -74,7 +74,7 @@ public:
             const QString& last_name,
             const QStringList& preferred_games,
             gui::AddUserCallback&& on_added_user) = 0;
-    virtual QStringList get_available_games() const = 0;
+    virtual QStringList get_games() const = 0;
 };
 
 }
