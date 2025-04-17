@@ -10,8 +10,6 @@
 
 namespace matchmaker::app {
 
-using namespace core;
-
 App::App(int argc, char *argv[]) :
     argc(argc), argv(argv),
     game_registry(argv[0], game_infos, std::size(game_infos))
