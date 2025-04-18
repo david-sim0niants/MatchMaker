@@ -9,7 +9,7 @@ MatchEngine::MatchEngine(
         UserRatingObserver *observer,
         PlayerObserver *player_observer) :
     prng(prng),
-    waiter(waiter),
+    timeline(waiter),
     rating_map_observer(observer),
     player_observer(player_observer),
     rating_map(observer ? &rating_map_observer : nullptr)

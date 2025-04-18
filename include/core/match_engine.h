@@ -52,7 +52,7 @@ public:
     template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
     void rem_all_users(F on_rem = []{})
     {
-        timeline.post([this, on_rem]{ del_all_players(); });
+        timeline.post([this, on_rem]{ del_all_players(); on_rem(); });
     }
 
 private:
@@ -62,8 +62,7 @@ private:
 
     misc::PRNG& prng;
 
-    Waiter& waiter;
-    Timeline timeline {waiter};
+    Timeline timeline;
     EventHandle sentinel_event;
 
     RatingMapToUserRatingObserverAdapter rating_map_observer;

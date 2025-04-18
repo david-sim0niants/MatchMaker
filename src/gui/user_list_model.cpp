@@ -2,13 +2,6 @@
 
 namespace matchmaker::gui {
 
-enum class UserProperty {
-    Username = 0,
-    FirstName = 1,
-    LastName = 2,
-    PreferredGames = 3,
-};
-
 UserListModel::UserListModel(QList<UserDescriptor>&& initial_users, QObject *parent) :
     QAbstractListModel(parent),
     users(std::move(initial_users))
@@ -28,14 +21,14 @@ QVariant UserListModel::headerData(int section, Qt::Orientation orientation, int
         return QVariant();
 
     if (orientation == Qt::Horizontal) {
-        switch (UserProperty(section)) {
-        case UserProperty::Username:
+        switch (section) {
+        case 0:
             return "Username";
-        case UserProperty::FirstName:
+        case 1:
             return "First name";
-        case UserProperty::LastName:
+        case 2:
             return "Last name";
-        case UserProperty::PreferredGames:
+        case 3:
             return "Preferred games";
         default:
             return QVariant();
@@ -59,14 +52,14 @@ QVariant UserListModel::data(const QModelIndex& index, int role) const
     int user_idx = index.row();
     UserDescriptor user = users[user_idx];
 
-    switch (UserProperty(index.column())) {
-    case UserProperty::Username:
+    switch (index.column()) {
+    case 0:
         return user.get_username();
-    case UserProperty::FirstName:
+    case 1:
         return user.get_first_name();
-    case UserProperty::LastName:
+    case 2:
         return user.get_last_name();
-    case UserProperty::PreferredGames:
+    case 3:
         return user.get_preferred_games().join(',');
     default:
         return QVariant();

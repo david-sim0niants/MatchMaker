@@ -7,9 +7,9 @@
 namespace matchmaker::gui {
 
 Dashboard::Dashboard(QWidget *parent) :
-    QWidget(parent), tree_view(new QTreeView(this))
+    QWidget(parent), model(new DashboardModel(this)), tree_view(new QTreeView(this))
 {
-    tree_view->setModel(new DashboardModel(this));
+    tree_view->setModel(model);
     tree_view->header()->setSectionResizeMode(QHeaderView::Stretch);
     tree_view->show();
 

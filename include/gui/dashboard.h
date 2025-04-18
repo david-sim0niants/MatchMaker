@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gui/dashboard_model.h"
+
 #include <QWidget>
 #include <QTreeView>
 
@@ -12,6 +14,7 @@ public:
     explicit Dashboard(QWidget *parent = nullptr);
 
 private:
+    gui::DashboardModel *model;
     QTreeView *tree_view;
 };
 
