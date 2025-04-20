@@ -1,4 +1,5 @@
 #include "app/console_user_rating_observer.h"
+#include "core/user.h"
 #include "misc/printing.h"
 
 #include <iostream>

@@ -11,7 +11,7 @@ namespace matchmaker::gui {
 
 namespace {
 
-/* Custom SortFilterProxyModel to ingore the last row. */
+/* Custom SortFilterProxyModel to ignore the last row. */
 class SortFilterProxyModel: public QSortFilterProxyModel
 {
 public:
@@ -39,16 +39,20 @@ protected:
 
 }
 
-UserList::UserList(UserListEndpoint& endpoint, QWidget *parent) :
+UserList::UserList(QWidget *parent) :
     QWidget(parent),
-    endpoint(endpoint),
-    model(new UserListModel(endpoint.get_initial_users(), this)),
+    model(new UserListModel(this)),
     model_proxy(new SortFilterProxyModel(this)),
     delegate(new UserListDelegate(this)),
     user_list_filter(new UserListFilter(this)),
     table_view(new QTableView(this))
 {
     init();
+}
+
+void UserList::set_initial_users(const QList<UserDescriptor>& users)
+{
+    emit init_users(users);
 }
 
 void UserList::on_added_user(UserDescriptor user)
@@ -63,7 +67,7 @@ void UserList::on_rem_selected_user()
 
     auto [first, last] = get_selected_rows();
     for (int i = first; i <= last; ++i)
-        endpoint.rem_user(model->get_user_at(i));
+        emit removed_user(model->get_user_at(i));
 
     model->rem_users(first, last);
 }
@@ -96,8 +100,10 @@ void UserList::init()
 {
     init_table_view();
     init_layout();
+    connect(this, &UserList::init_users, model, &UserListModel::reset);
     connect(delegate, &UserListDelegate::clicked_add_user, this, &UserList::clicked_add_user);
     connect(user_list_filter, &UserListFilter::trigerred, this, &UserList::on_filter_users);
+    connect(table_view, &QTableView::customContextMenuRequested, this, &UserList::on_open_context_menu);
 }
 
 void UserList::init_table_view()
@@ -110,8 +116,6 @@ void UserList::init_table_view()
     table_view->setModel(model_proxy);
     table_view->setItemDelegate(delegate);
     table_view->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    connect(table_view, &QTableView::customContextMenuRequested, this, &UserList::on_open_context_menu);
 
     table_view->sortByColumn(username_column, Qt::AscendingOrder);
     table_view->setSelectionMode(QAbstractItemView::SingleSelection);

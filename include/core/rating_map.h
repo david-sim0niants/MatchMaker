@@ -5,7 +5,7 @@
 
 namespace matchmaker::core {
 
-class Game; class Player;
+class Game; class User;
 
 class RatingMapObserver;
 
@@ -13,22 +13,25 @@ using Rating = int;
 
 class RatingMap {
 public:
-    explicit RatingMap(RatingMapObserver *observer = nullptr);
+    std::optional<Rating> get_rating(const Game& game, const User& user) const;
+    Rating get_rating(const Game& game, const User& user);
+    void set_rating(const Game& game, const User& user, Rating rating);
+    void change_rating(const Game& game, const User& user, Rating rating_diff);
 
-    std::optional<Rating> get_rating(const Game& game, const Player& player) const;
-    Rating get_rating(const Game& game, const Player& player);
-    void set_rating(const Game& game, const Player& player, Rating rating);
-    void change_rating(const Game& game, const Player& player, Rating rating_diff);
+    void set_observer(RatingMapObserver *observer)
+    {
+        this->observer = observer;
+    }
 
 private:
-    std::unordered_map<const Game *, std::unordered_map<const Player *, Rating>>
-        rating_by_player_by_game;
+    std::unordered_map<const Game *, std::unordered_map<const User *, Rating>>
+        rating_by_user_by_game;
     RatingMapObserver *observer;
 };
 
 class RatingMapObserver {
 public:
-    virtual void notify_rating_change(const Game& game, const Player& player, Rating rating) = 0;
+    virtual void notify_rating_change(const Game& game, const User& user, Rating rating) = 0;
 };
 
 }

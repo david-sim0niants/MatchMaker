@@ -2,10 +2,46 @@
 
 namespace matchmaker::gui {
 
-UserListModel::UserListModel(QList<UserDescriptor>&& initial_users, QObject *parent) :
-    QAbstractListModel(parent),
-    users(std::move(initial_users))
+static QString make_qstring_from_strview(std::string_view strview)
 {
+    return QString::fromUtf8(strview.data(), strview.size());
+}
+
+UserListModel::UserListModel(QObject *parent) : QAbstractListModel(parent)
+{
+}
+
+void UserListModel::reset(const QList<UserDescriptor>& users)
+{
+    beginResetModel();
+    this->users = users;
+    endResetModel();
+}
+
+UserDescriptor UserListModel::get_user_at(int index) const
+{
+    return users[index];
+}
+
+void UserListModel::add_user(UserDescriptor user)
+{
+    beginInsertRows(QModelIndex(), users.size(), users.size());
+    users.append(user);
+    endInsertRows();
+}
+
+void UserListModel::rem_user_at(int index)
+{
+    beginRemoveRows(QModelIndex(), index, index);
+    users.removeAt(index);
+    endRemoveRows();
+}
+
+void UserListModel::rem_users(int from, int to)
+{
+    beginRemoveRows(QModelIndex(), from, to);
+    users.erase(users.begin() + from, users.begin() + to + 1);
+    endRemoveRows();
 }
 
 Qt::ItemFlags UserListModel::flags(const QModelIndex &index) const
@@ -54,11 +90,11 @@ QVariant UserListModel::data(const QModelIndex& index, int role) const
 
     switch (index.column()) {
     case 0:
-        return user.get_username();
+        return make_qstring_from_strview(user.get_username());
     case 1:
-        return user.get_first_name();
+        return make_qstring_from_strview(user.get_first_name());
     case 2:
-        return user.get_last_name();
+        return make_qstring_from_strview(user.get_last_name());
     case 3:
         return user.get_preferred_games().join(',');
     default:
@@ -74,32 +110,6 @@ int UserListModel::rowCount(const QModelIndex& parent) const
 int UserListModel::columnCount(const QModelIndex& parent) const
 {
     return 4;
-}
-
-UserDescriptor UserListModel::get_user_at(int index) const
-{
-    return users[index];
-}
-
-void UserListModel::add_user(UserDescriptor user)
-{
-    beginInsertRows(QModelIndex(), users.size(), users.size());
-    users.append(user);
-    endInsertRows();
-}
-
-void UserListModel::rem_user_at(int index)
-{
-    beginRemoveRows(QModelIndex(), index, index);
-    users.removeAt(index);
-    endRemoveRows();
-}
-
-void UserListModel::rem_users(int from, int to)
-{
-    beginRemoveRows(QModelIndex(), from, to);
-    users.erase(users.begin() + from, users.begin() + to + 1);
-    endRemoveRows();
 }
 
 }

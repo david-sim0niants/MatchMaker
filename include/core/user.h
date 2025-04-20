@@ -13,9 +13,9 @@ public:
     User(std::string_view username, std::string&& name, std::string&& last_name,
          std::vector<const Game *>&& preferred_games);
 
-    inline const char *get_username() const noexcept
+    inline std::string_view get_username() const noexcept
     {
-        return username;
+        return std::string_view(username, username_length);
     }
 
     inline std::size_t get_username_length() const noexcept

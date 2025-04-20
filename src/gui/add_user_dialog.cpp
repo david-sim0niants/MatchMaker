@@ -40,13 +40,7 @@ void AddUserDialog::accept()
         if (checkbox->isChecked())
             preferred_games.push_back(checkbox->text());
 
-    AddUserDialogError e = endpoint.add_user(
-            username, first_name, last_name, preferred_games,
-            [this](UserDescriptor user)
-            {
-                emit added_user(user);
-            }
-        );
+    AddUserDialogError e = endpoint.add_user(username, first_name, last_name, preferred_games);
 
     if (e) {
         QString err_msg = make_error_message_from(e);

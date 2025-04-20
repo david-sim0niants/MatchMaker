@@ -41,6 +41,17 @@ private:
 public:
     using QAbstractItemModel::QAbstractItemModel;
 
+    void update(const QString& game, UserDescriptor user, int rating);
+    void add_user(UserDescriptor user);
+    void rem_user(UserDescriptor user);
+
+    const QString& get_game_at(QModelIndex index)
+    {
+        assert(index.row() < game_nodes.size());
+        return game_nodes[index.row()]->name;
+    }
+
+private:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     QVariant headerData(int section,
@@ -53,10 +64,6 @@ public:
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex&) const override;
 
-    void update(QString&& game, UserDescriptor user, int rating);
-    void add_user(UserDescriptor user);
-    void rem_user(UserDescriptor user);
-
 private:
     QModelIndex update_game(QString&& game);
     QModelIndex update_user(const QModelIndex& game_index, UserDescriptor user);
@@ -64,8 +71,10 @@ private:
     void new_game_node(int index, QString&& game);
     void new_user_node(const QModelIndex& game_index, int user_index, UserDescriptor user);
 
+    void rem_user_from_game(const QModelIndex& game_index, UserDescriptor user);
+
     int find_game_node(const QString& game) const;
-    static int find_user_node(const GameNode *game_node, const QString& username);
+    static int find_user_node(const GameNode *game_node, std::string_view username);
 
     std::vector<std::unique_ptr<GameNode>> game_nodes;
 };

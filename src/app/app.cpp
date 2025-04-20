@@ -4,44 +4,32 @@
 #include "app/console_player_observer.h"
 #include "app/console_user_rating_observer.h"
 
-#include "core/cv_waiter.h"
-#include "core/match_engine.h"
+#include "core/main_activity.h"
 #include "gui/mainwindow.h"
 
 namespace matchmaker::app {
 
 App::App(int argc, char *argv[]) :
     argc(argc), argv(argv),
-    game_registry(argv[0], game_infos, std::size(game_infos))
+    main_activity(core::GameRegistry(argv[0], game_infos, std::size(game_infos)), "/tmp/")
 {
 }
 
 int App::exec()
 {
-    misc::PRNG prng;
-    core::CVWaiter cv_waiter;
-
-    ConsoleUserRatingObserver user_rating_observer;
     ConsolePlayerObserver player_observer;
+    ConsoleUserRatingObserver rating_observer;
 
-    core::MatchEngine match_engine {prng, cv_waiter, &user_rating_observer, &player_observer};
+    main_activity.set_player_observer(&player_observer);
+    main_activity.set_rating_map_observer(&rating_observer);
 
-    Mediator mediator {game_registry, user_registry, match_engine};
+    Mediator mediator {main_activity};
 
     QApplication q_app(argc, argv);
     gui::MainWindow main_window {mediator};
 
-    match_engine.keep_alive();
-    auto timeline_thread = std::thread(&core::MatchEngine::run, &match_engine);
-
     main_window.show();
-    int status = q_app.exec();
-
-    match_engine.let_die();
-    match_engine.rem_all_users();
-
-    timeline_thread.join();
-    return status;
+    return q_app.exec();
 }
 
 }

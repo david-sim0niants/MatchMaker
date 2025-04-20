@@ -36,12 +36,14 @@ QVariant DashboardModel::data(const QModelIndex& index, int role) const
         return static_cast<GameNode *>(index.internalPointer())->name;
 
     UserNode *user_node = static_cast<UserNode *>(index.internalPointer());
-    if (index.column() == 0)
-        return user_node->user.get_username();
-    else if (index.column() == 1)
+    if (index.column() == 0) {
+        std::string_view username = user_node->user.get_username();
+        return QString::fromUtf8(username.data(), username.size());
+    } else if (index.column() == 1) {
         return user_node->rating;
-    else
+    } else {
         return QModelIndex();
+    }
 }
 
 QModelIndex DashboardModel::index(int row, int col, const QModelIndex& parent) const
@@ -49,41 +51,50 @@ QModelIndex DashboardModel::index(int row, int col, const QModelIndex& parent) c
     if ( ! parent.isValid())
         return createIndex(row, 0, game_nodes[row].get());
 
-    GameNode *game_node = static_cast<GameNode *>(parent.internalPointer());
+    GameNode *game_node = game_nodes[parent.row()].get();
     return createIndex(row, col, game_node->user_nodes[row].get());
 }
 
 int DashboardModel::rowCount(const QModelIndex& parent) const
 {
-    if (parent.isValid())
-        return 0;
-    else
+    if (! parent.isValid())
         return game_nodes.size();
+    else if (! parent.parent().isValid())
+        return game_nodes[parent.row()]->user_nodes.size();
+    else
+        return 0;
 }
 
 int DashboardModel::columnCount(const QModelIndex& parent) const
 {
-    if (parent.isValid())
+    if (! parent.isValid())
+        return 1;
+    else if (! parent.parent().isValid())
         return 2;
     else
-        return 1;
+        return 0;
 }
 
 QModelIndex DashboardModel::parent(const QModelIndex& index) const
 {
-    Node *parent = static_cast<Node *>(index.internalPointer())->parent;
-    if (parent)
-        return createIndex(index.row(), index.column(), parent);
-    else
+    if (!index.isValid())
         return QModelIndex();
+
+    Node *parent = static_cast<Node *>(index.internalPointer())->parent;
+    if (parent == nullptr)
+        return QModelIndex();
+
+    GameNode *game_node = static_cast<GameNode *>(parent);
+    return createIndex(find_game_node(game_node->name), 0, parent);
 }
 
-void DashboardModel::update(QString&& game, UserDescriptor user, int rating)
+void DashboardModel::update(const QString& game, UserDescriptor user, int rating)
 {
-    QModelIndex game_index = update_game(std::move(game));
+    QModelIndex game_index = update_game(QString(game));
     QModelIndex user_index = update_user(game_index, user);
     game_nodes[game_index.row()]->user_nodes[user_index.row()]->rating = rating;
-    emit dataChanged(user_index, user_index);
+    QModelIndex rating_index = index(user_index.row(), 1, user_index.parent());
+    emit dataChanged(rating_index, rating_index);
 }
 
 void DashboardModel::add_user(UserDescriptor user)
@@ -94,6 +105,8 @@ void DashboardModel::add_user(UserDescriptor user)
 
 void DashboardModel::rem_user(UserDescriptor user)
 {
+    for (int i = 0; i < game_nodes.size(); ++i)
+        rem_user_from_game(index(i, 0), user);
 }
 
 QModelIndex DashboardModel::update_game(QString&& game)
@@ -113,10 +126,9 @@ QModelIndex DashboardModel::update_user(const QModelIndex& game_index, UserDescr
 {
     GameNode *game_node = game_nodes[game_index.row()].get();
 
-    const QString username = user.get_username();
-
-    int user_idx = find_user_node(game_node, username);
-    if (game_node->user_nodes[user_idx]->user.get_username() != username)
+    int user_idx = find_user_node(game_node, user.get_username());
+    if (user_idx == game_node->user_nodes.size() ||
+        game_node->user_nodes[user_idx]->user.get_username() != user.get_username())
         new_user_node(game_index, user_idx, user);
 
     return index(user_idx, 0, game_index);
@@ -140,6 +152,20 @@ void DashboardModel::new_user_node(const QModelIndex& game_index,
     endInsertRows();
 }
 
+void DashboardModel::rem_user_from_game(const QModelIndex& game_index, UserDescriptor user)
+{
+    GameNode *game_node = game_nodes[game_index.row()].get();
+
+    int user_idx = find_user_node(game_node, user.get_username());
+    if (user_idx >= game_node->user_nodes.size() ||
+        game_node->user_nodes[user_idx]->user.get_username() != user.get_username())
+        return;
+
+    beginRemoveRows(game_index, user_idx, user_idx);
+    game_node->user_nodes.erase(game_node->user_nodes.begin() + user_idx);
+    endRemoveRows();
+}
+
 int DashboardModel::find_game_node(const QString& game) const
 {
     return std::lower_bound(game_nodes.begin(), game_nodes.end(), game,
@@ -149,11 +175,11 @@ int DashboardModel::find_game_node(const QString& game) const
             }) - game_nodes.begin();
 }
 
-int DashboardModel::find_user_node(const GameNode *game_node, const QString& username)
+int DashboardModel::find_user_node(const GameNode *game_node, std::string_view username)
 {
     const auto& user_nodes = game_node->user_nodes;
     return std::lower_bound(user_nodes.begin(), user_nodes.end(), username,
-            [](const auto& user_node, const QString& username)
+            [](const auto& user_node, std::string_view username)
             {
                 return user_node->user.get_username() < username;
             }) - user_nodes.begin();

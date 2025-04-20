@@ -1,7 +1,6 @@
 #pragma once
 
-#include "core/game_registry.h"
-#include "core/user_registry.h"
+#include "core/main_activity.h"
 
 #include <QApplication>
 
@@ -16,9 +15,7 @@ public:
 private:
     int argc;
     char **argv;
-
-    core::GameRegistry game_registry;
-    core::UserRegistry user_registry;
+    core::MainActivity main_activity;
 };
 
 }

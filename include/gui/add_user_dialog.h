@@ -34,9 +34,6 @@ public:
 
     int exec() override;
 
-signals:
-    void added_user(UserDescriptor user);
-
 private:
     void accept() override;
 
@@ -72,8 +69,8 @@ public:
             const QString& username,
             const QString& name,
             const QString& last_name,
-            const QStringList& preferred_games,
-            gui::AddUserCallback&& on_added_user) = 0;
+            const QStringList& preferred_games) = 0;
+
     virtual QStringList get_games() const = 0;
 };
 

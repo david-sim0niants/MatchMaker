@@ -140,8 +140,8 @@ std::unique_ptr<GameInstance> ExecutableGame::launch(
         const Player& player_b,
         GameInstanceObserver *observer) const
 {
-    const char *player_a_name = player_a.get_user().get_username();
-    const char *player_b_name = player_b.get_user().get_username();
+    const char *player_a_name = player_a.get_user().get_username().data();
+    const char *player_b_name = player_b.get_user().get_username().data();
 
     return std::make_unique<ExecutableGameInstance>(
             path.c_str(), comm.c_str(), player_a_name, player_b_name, observer);

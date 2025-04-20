@@ -3,22 +3,18 @@
 
 namespace matchmaker::core {
 
-MatchEngine::MatchEngine(
-        misc::PRNG& prng,
-        Waiter& waiter,
-        UserRatingObserver *observer,
-        PlayerObserver *player_observer) :
+MatchEngine::MatchEngine(misc::PRNG& prng, Waiter& waiter) :
     prng(prng),
-    timeline(waiter),
-    rating_map_observer(observer),
-    player_observer(player_observer),
-    rating_map(observer ? &rating_map_observer : nullptr)
+    timeline(waiter)
 {
 }
 
-void MatchEngine::run()
+RatingMap MatchEngine::run(RatingMap&& rating_map)
 {
+    std::swap(rating_map, this->rating_map);
     timeline.run();
+    std::swap(rating_map, this->rating_map);
+    return std::move(rating_map);
 }
 
 void MatchEngine::keep_alive()

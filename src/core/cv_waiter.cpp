@@ -29,7 +29,7 @@ void CVWaiter::interrupt()
 {
     std::scoped_lock lock{mutex};
     waiting = false;
-    cv.notify_one();
+    cv.notify_all();
 }
 
 }

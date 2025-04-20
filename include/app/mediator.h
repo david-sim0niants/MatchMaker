@@ -1,40 +1,45 @@
 #pragma once
 
-#include "core/game_registry.h"
-#include "core/user_registry.h"
-#include "core/match_engine.h"
+#include "core/main_activity.h"
 #include "gui/mainwindow.h"
 
 namespace matchmaker::app {
 
-class Mediator : public gui::MainWindowEndpoint {
-public:
-    explicit Mediator(
-            core::GameRegistry& game_registry,
-            core::UserRegistry& user_registry,
-            core::MatchEngine& match_engine);
+class Mediator :
+    public core::RatingMapObserver,
+    public gui::AddUserDialogEndpoint,
+    public gui::MainWindowEndpoint {
 
-    QList<gui::UserDescriptor> get_initial_users() const override;
+public:
+    explicit Mediator(core::MainActivity& main_activity);
+
+private:
+    void notify_rating_change(
+            const core::Game& game,
+            const core::User& user,
+            core::Rating rating) override;
+
+    void start(gui::MainWindowControl& control) override;
+    void stop() override;
+
+    void save_game_ratings_to_file(const QString& game) override;
+    void save_all_ratings_to_file() override;
+
+    gui::AddUserDialogEndpoint& get_add_user_dialog_endpoint() override;
 
     gui::AddUserDialogError add_user(
             const QString& username,
             const QString& name,
             const QString& last_name,
-            const QStringList& preferred_games,
-            gui::AddUserCallback&& on_added_user) override;
+            const QStringList& preferred_games) override;
 
     void rem_user(gui::UserDescriptor user) override;
 
     QStringList get_games() const override;
 
 private:
-    std::vector<const core::Game *>
-        find_games(const QStringList& preferred_game_names) const;
-
-    core::GameRegistry& game_registry;
-    core::UserRegistry& user_registry;
-    core::MatchEngine& match_engine;
+    core::MainActivity& main_activity;
+    gui::MainWindowControl *control;
 };
-
 
 }
