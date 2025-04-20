@@ -100,10 +100,7 @@ void UserList::init()
 {
     init_table_view();
     init_layout();
-    connect(this, &UserList::init_users, model, &UserListModel::reset);
-    connect(delegate, &UserListDelegate::clicked_add_user, this, &UserList::clicked_add_user);
-    connect(user_list_filter, &UserListFilter::trigerred, this, &UserList::on_filter_users);
-    connect(table_view, &QTableView::customContextMenuRequested, this, &UserList::on_open_context_menu);
+    init_connections();
 }
 
 void UserList::init_table_view()
@@ -133,6 +130,14 @@ void UserList::init_layout()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(table_view);
     layout->addWidget(user_list_filter);
+}
+
+void UserList::init_connections()
+{
+    connect(this, &UserList::init_users, model, &UserListModel::reset);
+    connect(delegate, &UserListDelegate::clicked_add_user, this, &UserList::clicked_add_user);
+    connect(user_list_filter, &UserListFilter::trigerred, this, &UserList::on_filter_users);
+    connect(table_view, &QTableView::customContextMenuRequested, this, &UserList::on_open_context_menu);
 }
 
 bool UserList::has_selection() const

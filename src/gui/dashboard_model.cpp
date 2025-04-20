@@ -2,98 +2,12 @@
 
 namespace matchmaker::gui {
 
-Qt::ItemFlags DashboardModel::flags(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return Qt::NoItemFlags;
-
-    return QAbstractItemModel::flags(index);
-}
-
-QVariant DashboardModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (role != Qt::DisplayRole)
-        return QVariant();
-
-    switch (section) {
-    case 0:
-        return "Game";
-    case 1:
-        return "User";
-    case 2:
-        return "Rating";
-    default:
-        return QVariant();
-    }
-}
-
-QVariant DashboardModel::data(const QModelIndex& index, int role) const
-{
-    if (role != Qt::DisplayRole)
-        return QVariant();
-
-    if (! index.parent().isValid())
-        return static_cast<GameNode *>(index.internalPointer())->name;
-
-    UserNode *user_node = static_cast<UserNode *>(index.internalPointer());
-    if (index.column() == 0) {
-        std::string_view username = user_node->user.get_username();
-        return QString::fromUtf8(username.data(), username.size());
-    } else if (index.column() == 1) {
-        return user_node->rating;
-    } else {
-        return QModelIndex();
-    }
-}
-
-QModelIndex DashboardModel::index(int row, int col, const QModelIndex& parent) const
-{
-    if ( ! parent.isValid())
-        return createIndex(row, 0, game_nodes[row].get());
-
-    GameNode *game_node = game_nodes[parent.row()].get();
-    return createIndex(row, col, game_node->user_nodes[row].get());
-}
-
-int DashboardModel::rowCount(const QModelIndex& parent) const
-{
-    if (! parent.isValid())
-        return game_nodes.size();
-    else if (! parent.parent().isValid())
-        return game_nodes[parent.row()]->user_nodes.size();
-    else
-        return 0;
-}
-
-int DashboardModel::columnCount(const QModelIndex& parent) const
-{
-    if (! parent.isValid())
-        return 1;
-    else if (! parent.parent().isValid())
-        return 2;
-    else
-        return 0;
-}
-
-QModelIndex DashboardModel::parent(const QModelIndex& index) const
-{
-    if (!index.isValid())
-        return QModelIndex();
-
-    Node *parent = static_cast<Node *>(index.internalPointer())->parent;
-    if (parent == nullptr)
-        return QModelIndex();
-
-    GameNode *game_node = static_cast<GameNode *>(parent);
-    return createIndex(find_game_node(game_node->name), 0, parent);
-}
-
 void DashboardModel::update(const QString& game, UserDescriptor user, int rating)
 {
     QModelIndex game_index = update_game(QString(game));
     QModelIndex user_index = update_user(game_index, user);
     game_nodes[game_index.row()]->user_nodes[user_index.row()]->rating = rating;
-    QModelIndex rating_index = index(user_index.row(), 1, user_index.parent());
+    QModelIndex rating_index = user_index.siblingAtColumn(2);
     emit dataChanged(rating_index, rating_index);
 }
 
@@ -119,7 +33,7 @@ QModelIndex DashboardModel::update_game(QString&& game)
     if (game_idx == game_nodes.size() || game_nodes[game_idx]->name != game)
         new_game_node(game_idx, std::move(game));
 
-    return index(game_idx, 0, QModelIndex());
+    return index(game_idx, 0);
 }
 
 QModelIndex DashboardModel::update_user(const QModelIndex& game_index, UserDescriptor user)
@@ -131,7 +45,7 @@ QModelIndex DashboardModel::update_user(const QModelIndex& game_index, UserDescr
         game_node->user_nodes[user_idx]->user.get_username() != user.get_username())
         new_user_node(game_index, user_idx, user);
 
-    return index(user_idx, 0, game_index);
+    return index(user_idx, 1, game_index);
 }
 
 void DashboardModel::new_game_node(int index, QString&& game)
@@ -183,6 +97,98 @@ int DashboardModel::find_user_node(const GameNode *game_node, std::string_view u
             {
                 return user_node->user.get_username() < username;
             }) - user_nodes.begin();
+}
+
+Qt::ItemFlags DashboardModel::flags(const QModelIndex &index) const
+{
+    if (! index.isValid())
+        return Qt::NoItemFlags;
+    else if (! index.parent().isValid())
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    else if (index.column() > 0 && ! index.parent().parent().isValid())
+        return Qt::ItemIsEnabled;
+    else
+        return Qt::NoItemFlags;
+}
+
+QVariant DashboardModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    switch (section) {
+    case 0:
+        return "Game";
+    case 1:
+        return "User";
+    case 2:
+        return "Rating";
+    default:
+        return QVariant();
+    }
+}
+
+QVariant DashboardModel::data(const QModelIndex& index, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (! index.parent().isValid()) {
+        if (index.column() == 0)
+            return static_cast<GameNode *>(index.internalPointer())->name;
+        else
+            return QVariant();
+    }
+
+    UserNode *user_node = static_cast<UserNode *>(index.internalPointer());
+    if (index.column() == 1) {
+        std::string_view username = user_node->user.get_username();
+        return QString::fromUtf8(username.data(), username.size());
+    } else if (index.column() == 2) {
+        return user_node->rating;
+    } else {
+        return QModelIndex();
+    }
+}
+
+QModelIndex DashboardModel::index(int row, int col, const QModelIndex& parent) const
+{
+    if ( ! parent.isValid()) {
+        if (col == 0)
+            return createIndex(row, 0, game_nodes[row].get());
+    } else if (! parent.parent().isValid()) {
+        GameNode *game_node = game_nodes[parent.row()].get();
+        return createIndex(row, col, game_node->user_nodes[row].get());
+    }
+    return QModelIndex();
+}
+
+int DashboardModel::rowCount(const QModelIndex& parent) const
+{
+    if (! parent.isValid())
+        return game_nodes.size();
+    else if (! parent.parent().isValid())
+        return game_nodes[parent.row()]->user_nodes.size();
+    else
+        return 0;
+}
+
+int DashboardModel::columnCount(const QModelIndex& parent) const
+{
+    return 3;
+}
+
+QModelIndex DashboardModel::parent(const QModelIndex& index) const
+{
+    if (!index.isValid())
+        return QModelIndex();
+
+    Node *parent = static_cast<Node *>(index.internalPointer())->parent;
+    if (parent == nullptr)
+        return QModelIndex();
+
+    GameNode *game_node = static_cast<GameNode *>(parent);
+    return createIndex(find_game_node(game_node->name), 0, parent);
 }
 
 }

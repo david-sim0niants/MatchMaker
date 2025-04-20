@@ -11,15 +11,15 @@ MatchEngine::MatchEngine(misc::PRNG& prng, Waiter& waiter) :
 
 RatingMap MatchEngine::run(RatingMap&& rating_map)
 {
-    std::swap(rating_map, this->rating_map);
+    std::swap(rating_map, context.rating_map);
     timeline.run();
-    std::swap(rating_map, this->rating_map);
+    std::swap(rating_map, context.rating_map);
     return std::move(rating_map);
 }
 
 void MatchEngine::keep_alive()
 {
-    timeline.post([this]{ sentinel_event = Timeline::call_at(Time::max(), []{});});
+    timeline.post([this]{ sentinel_event = Timeline::call_at(Time::max(), []{}); });
 }
 
 void MatchEngine::let_die()

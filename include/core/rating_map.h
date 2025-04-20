@@ -18,7 +18,10 @@ public:
     void set_rating(const Game& game, const User& user, Rating rating);
     void change_rating(const Game& game, const User& user, Rating rating_diff);
 
-    void set_observer(RatingMapObserver *observer)
+    void rem_user(const User& user);
+    void rem_game(const Game& game);
+
+    inline void set_observer(RatingMapObserver *observer) noexcept
     {
         this->observer = observer;
     }

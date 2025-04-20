@@ -35,12 +35,13 @@ void Mediator::notify_rating_change(
 
 void Mediator::save_game_ratings_to_file(const QString& game)
 {
-    // TODO
+    std::string game_name = game.toStdString();
+    main_activity.save_user_ratings_for_game(game_name);
 }
 
 void Mediator::save_all_ratings_to_file()
 {
-    // TODO
+    main_activity.save_user_ratings();
 }
 
 gui::AddUserDialogEndpoint& Mediator::get_add_user_dialog_endpoint()
@@ -55,6 +56,7 @@ gui::AddUserDialogError Mediator::add_user(
         const QStringList& preferred_games)
 {
     core::UserInfo user_info;
+
     std::string username_str = username.toStdString();
     user_info.username = username_str;
     user_info.name = first_name.toStdString();

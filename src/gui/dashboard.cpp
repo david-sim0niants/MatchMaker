@@ -12,19 +12,7 @@ Dashboard::Dashboard(QWidget *parent) :
     model(new DashboardModel(this)),
     tree_view(new QTreeView(this))
 {
-    tree_view->setModel(model);
-    tree_view->header()->setSectionResizeMode(QHeaderView::Stretch);
-    tree_view->show();
-    tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    setLayout(layout);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(tree_view);
-
-    connect(this, &Dashboard::updated_rating, model, &DashboardModel::update);
-    connect(tree_view, &QTreeView::customContextMenuRequested,
-            this, &Dashboard::on_open_context_menu);
+    init();
 }
 
 void Dashboard::update_rating(const QString& game, UserDescriptor user, int rating)
@@ -62,6 +50,39 @@ void Dashboard::on_open_context_menu(const QPoint& pos)
             });
 
     menu.exec(tree_view->viewport()->mapToGlobal(pos));
+}
+
+void Dashboard::init()
+{
+    init_table_view();
+    init_layout();
+    init_connections();
+}
+
+void Dashboard::init_table_view()
+{
+    tree_view->setModel(model);
+    tree_view->header()->setSectionResizeMode(QHeaderView::Stretch);
+    tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
+    tree_view->setSelectionMode(QAbstractItemView::SingleSelection);
+    tree_view->setSelectionBehavior(QAbstractItemView::SelectItems);
+    tree_view->show();
+}
+
+void Dashboard::init_layout()
+{
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    setLayout(layout);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(tree_view);
+
+}
+
+void Dashboard::init_connections()
+{
+    connect(this, &Dashboard::updated_rating, model, &DashboardModel::update);
+    connect(tree_view, &QTreeView::customContextMenuRequested,
+            this, &Dashboard::on_open_context_menu);
 }
 
 }

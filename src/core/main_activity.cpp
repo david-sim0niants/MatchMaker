@@ -11,10 +11,8 @@ void MainActivity::start()
 {
     load_user_ratings();
 
-    if (running)
-        return;
     match_engine.keep_alive();
-    match_engine_thread = std::thread(&MatchEngine::run, &match_engine, std::move(rating_map));
+    thread = std::thread(&MainActivity::run, this);
     running = true;
 
     load_users();
@@ -24,19 +22,20 @@ void MainActivity::stop()
 {
     match_engine.let_die();
     match_engine.rem_all_users();
-    if (match_engine_thread.joinable())
-        match_engine_thread.join();
-    running = false;
 
-    save_user_ratings();
-    save_users();
+    if (thread.joinable())
+        thread.join();
+    running = false;
 }
 
 void MainActivity::set_rating_map_observer(RatingMapObserver *rating_map_observer)
 {
     if (running)
-        match_engine.intercept([rating_map_observer] (RatingMap& rating_map)
-                { rating_map.set_observer(rating_map_observer); });
+        match_engine.intercept(
+            [rating_map_observer] (MatchEngineContext& context)
+            {
+                context.rating_map.set_observer(rating_map_observer);
+            });
     else
         rating_map.set_observer(rating_map_observer);
 }
@@ -57,6 +56,11 @@ void MainActivity::save_user_ratings()
         save_user_ratings_for_game_internal(game->get_name());
 }
 
+void MainActivity::run()
+{
+    rating_map = match_engine.run(std::exchange(rating_map, {}));
+}
+
 void MainActivity::load_users()
 {
 }
@@ -71,7 +75,6 @@ void MainActivity::load_user_ratings()
 
 void MainActivity::save_user_ratings_for_game_internal(std::string_view game)
 {
-    // TODO: do the actual saving
 }
 
 std::pair<const User *, UserRegistryError> MainActivity::register_user(UserInfo&& user_info)

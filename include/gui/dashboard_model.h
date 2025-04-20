@@ -52,6 +52,18 @@ public:
     }
 
 private:
+    QModelIndex update_game(QString&& game);
+    QModelIndex update_user(const QModelIndex& game_index, UserDescriptor user);
+
+    void new_game_node(int index, QString&& game);
+    void new_user_node(const QModelIndex& game_index, int user_index, UserDescriptor user);
+
+    void rem_user_from_game(const QModelIndex& game_index, UserDescriptor user);
+
+    int find_game_node(const QString& game) const;
+    static int find_user_node(const GameNode *game_node, std::string_view username);
+
+private:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     QVariant headerData(int section,
@@ -63,18 +75,6 @@ private:
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex&) const override;
-
-private:
-    QModelIndex update_game(QString&& game);
-    QModelIndex update_user(const QModelIndex& game_index, UserDescriptor user);
-
-    void new_game_node(int index, QString&& game);
-    void new_user_node(const QModelIndex& game_index, int user_index, UserDescriptor user);
-
-    void rem_user_from_game(const QModelIndex& game_index, UserDescriptor user);
-
-    int find_game_node(const QString& game) const;
-    static int find_user_node(const GameNode *game_node, std::string_view username);
 
     std::vector<std::unique_ptr<GameNode>> game_nodes;
 };

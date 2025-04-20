@@ -36,6 +36,11 @@ private slots:
     void on_open_context_menu(const QPoint& pos);
 
 private:
+    void init();
+    void init_table_view();
+    void init_layout();
+    void init_connections();
+
     DashboardModel *model;
     QTreeView *tree_view;
 };

@@ -16,6 +16,11 @@ namespace matchmaker::core {
 
 class MatchEngine {
 public:
+    struct Context {
+        RatingMap rating_map;
+    };
+
+public:
     explicit MatchEngine(misc::PRNG& prng, Waiter& waiter);
 
     MatchEngine(const MatchEngine&) = delete;
@@ -29,50 +34,56 @@ public:
     void keep_alive();
     void let_die();
 
-    template<typename F,
-        typename R = std::invoke_result_t<F, RatingMap&>,
-        std::enable_if_t<std::is_invocable_r_v<R, F, RatingMap&>, int> = 0>
+    template<typename F = void (*)(Context&, const User&)>
+    void add_user(const User& user, F on_add = [](auto&&...){})
+    {
+        timeline.post([this, &user, on_add]
+            {
+                new_player_for(user).init();
+                on_add(context, user);
+            });
+    }
+
+    template<typename F = void (*)(Context&, const User&)>
+    void rem_user(const User& user, F on_rem = [](auto&&...){})
+    {
+        timeline.post([this, &user, on_rem]
+            {
+                del_player_of(user)->deinit();
+                on_rem(context, user);
+            });
+    }
+
+    template<typename F = void (*)(Context&)>
+    void rem_all_users(F on_rem = [](Context&){})
+    {
+        timeline.post([this, on_rem]{ del_all_players(); on_rem(context); });
+    }
+
+    inline void set_player_observer(PlayerObserver *player_observer)
+    {
+        this->player_observer = player_observer;
+    }
+
+    template<typename F = void(*)(Context&), typename R = std::invoke_result_t<F, Context&>>
     R intercept(F f)
     {
         std::promise<R> promise;
         auto future = promise.get_future();
-        timeline.post([this, f, &promise]
+        timeline.post([this, &f, &promise]
             {
                 try {
                     if constexpr (std::is_void_v<R>) {
-                        f(rating_map);
+                        f(context);
                         promise.set_value();
                     } else {
-                        promise.set_value(f(rating_map));
+                        promise.set_value(f(context));
                     }
                 } catch (...) {
                     promise.set_exception(std::current_exception());
                 }
             });
         return future.get();
-    }
-
-    template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F, const User&>, int> = 0>
-    void add_user(const User& user, F on_add = [](auto&&){})
-    {
-        timeline.post([this, &user, on_add]{ new_player_for(user).init(); on_add(user); });
-    }
-
-    template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F, const User&>, int> = 0>
-    void rem_user(const User& user, F on_rem = [](auto&&){})
-    {
-        timeline.post([this, &user, on_rem]{ del_player_of(user)->deinit(); on_rem(user); });
-    }
-
-    template<typename F = void(*)(), std::enable_if_t<std::is_invocable_v<F>, int> = 0>
-    void rem_all_users(F on_rem = []{})
-    {
-        timeline.post([this, on_rem]{ del_all_players(); on_rem(); });
-    }
-
-    inline void set_player_observer(PlayerObserver *player_observer)
-    {
-        this->player_observer = player_observer;
     }
 
 private:
@@ -87,10 +98,12 @@ private:
 
     PlayerObserver *player_observer = nullptr;
 
-    RatingMap rating_map;
-    MatchMediator mediator {rating_map, timeline};
+    Context context;
+    MatchMediator mediator {context.rating_map, timeline};
     std::unordered_map<const User *, std::unique_ptr<Player>> player_by_user;
 };
+
+using MatchEngineContext = MatchEngine::Context;
 
 class MatchEngineException : public Exception {
 public:

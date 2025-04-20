@@ -42,8 +42,8 @@ private slots:
 private:
     void init();
     void init_table_view();
-    void init_filter();
     void init_layout();
+    void init_connections();
 
     bool has_selection() const;
     std::pair<int, int> get_selected_rows() const;

@@ -16,7 +16,7 @@ void ConsolePlayerObserver::on_state_change(
     std::cout << std::endl;
 }
 
-void ConsolePlayerObserver::on_match_start(const Player& player, Match& match, Time time)
+void ConsolePlayerObserver::on_match_start(const Player& player, const Match& match, Time time)
 {
     misc::print_to(std::cout, player.get_user().get_username(),
             " started a match playing: ", match.get_game().get_name(),

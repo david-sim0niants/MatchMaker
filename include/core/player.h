@@ -73,7 +73,7 @@ public:
 class PlayerObserver {
 public:
     virtual void on_state_change(const Player& player, Player::State state, Time time) = 0;
-    virtual void on_match_start(const Player& player, Match& match, Time time) = 0;
+    virtual void on_match_start(const Player& player, const Match& match, Time time) = 0;
     virtual void on_match_leave(const Player& player, Time time) = 0;
 };
 

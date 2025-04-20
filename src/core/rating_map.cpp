@@ -43,4 +43,15 @@ void RatingMap::change_rating(const Game& game, const User& user, Rating rating_
     }
 }
 
+void RatingMap::rem_user(const User& user)
+{
+    for (auto&& [game, rating_by_user] : rating_by_user_by_game)
+        rating_by_user.erase(&user);
+}
+
+void RatingMap::rem_game(const Game& game)
+{
+    rating_by_user_by_game.erase(&game);
+}
+
 }

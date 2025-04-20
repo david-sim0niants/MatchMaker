@@ -16,7 +16,7 @@ AddUserDialog::AddUserDialog(AddUserDialogEndpoint& endpoint, QWidget *parent) :
     last_name_text(new QLineEdit(this)),
     checkbox_layout(new QGridLayout),
     error_label(new QLabel(this)),
-    button_box(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
+    button_box(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this)),
     cancel_button(button_box->button(QDialogButtonBox::Cancel)),
     ok_button(button_box->button(QDialogButtonBox::Ok))
 {
