@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QApplication>
-
 namespace matchmaker::app {
 
 class App {

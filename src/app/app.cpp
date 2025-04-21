@@ -2,10 +2,11 @@
 #include "app/mediator.h"
 #include "app/games.h"
 #include "app/console_player_observer.h"
-#include "app/console_user_rating_observer.h"
 
 #include "core/main_activity.h"
 #include "gui/main_window.h"
+
+#include <QApplication>
 
 #include <cstdlib>
 #include <iostream>
@@ -49,10 +50,7 @@ int App::exec()
         prng, game_infos, std::size(game_infos), games_path, data_path_str };
 
     ConsolePlayerObserver player_observer;
-    ConsoleUserRatingObserver rating_observer;
-
     main_activity.set_player_observer(&player_observer);
-    main_activity.set_rating_map_observer(&rating_observer);
 
     Mediator mediator {main_activity};
 

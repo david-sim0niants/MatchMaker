@@ -111,6 +111,7 @@ private:
     {
         std::string output = subprocess.read_stdout_full();
         std::cout << output << std::endl;
+
         auto [word1, word2] = find_last_two_words(output);
         if (word1 == player_a_name && word2 == player_b_name ||
             word1 == player_b_name && word2 == player_a_name)
