@@ -32,7 +32,7 @@ protected:
     }
 
     template<std::size_t N>
-    void gen_timestaps(std::array<Time, N>& timestamps)
+    void gen_timestamps(std::array<Time, N>& timestamps)
     {
         Time prev_time = 0s;
         for (Time& time : timestamps) {
@@ -61,7 +61,7 @@ TEST_F(TimelineTest, RandomlySchedulingAtSpecificTimesRunsInChronologicalOrder)
 
     std::array<std::size_t, nr_events> random_order;
 
-    gen_timestaps(expected_timestamps);
+    gen_timestamps(expected_timestamps);
     gen_shuffled_indices(random_order);
 
     InSequence seq;

@@ -65,6 +65,12 @@ public:
         this->player_observer = player_observer;
     }
 
+    template<typename F = void(*)(Context&)>
+    void intercept_async(F f)
+    {
+        timeline.post([this, f] { f(context); });
+    }
+
     template<typename F = void(*)(Context&), typename R = std::invoke_result_t<F, Context&>>
     R intercept(F f)
     {

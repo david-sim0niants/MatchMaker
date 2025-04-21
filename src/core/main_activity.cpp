@@ -15,11 +15,15 @@ MainActivity::MainActivity(
 void MainActivity::start()
 {
     load_user_registry();
-    load_user_ratings();
 
     match_engine.keep_alive();
-    thread = std::thread(&MainActivity::run, this);
+    thread = std::thread([this]
+        {
+            rating_map = match_engine.run(std::exchange(rating_map, {}));
+        });
     running = true;
+
+    load_user_ratings();
 }
 
 void MainActivity::stop()
@@ -31,7 +35,6 @@ void MainActivity::stop()
         thread.join();
     running = false;
 
-    save_user_ratings();
     save_user_registry();
 
     user_registry = UserRegistry();
@@ -86,7 +89,7 @@ void MainActivity::rem_user(const User& user)
 void MainActivity::save_user_ratings()
 {
     if (running)
-        match_engine.intercept(
+        match_engine.intercept_async(
                 [this](MatchEngineContext& context)
                 {
                     save_user_ratings_internal(context.rating_map);
@@ -105,18 +108,13 @@ void MainActivity::save_user_ratings_for_game(std::string_view game_name)
 void MainActivity::save_user_ratings_for_game(const Game *game)
 {
     if (running)
-        match_engine.intercept(
+        match_engine.intercept_async(
             [this, game](MatchEngineContext& context)
             {
                 save_user_ratings_for_game_internal(game, context.rating_map);
             });
     else
         save_user_ratings_for_game_internal(game, this->rating_map);
-}
-
-void MainActivity::run()
-{
-    rating_map = match_engine.run(std::exchange(rating_map, {}));
 }
 
 void MainActivity::add_user_to_match_engine(const User& user)
@@ -146,7 +144,14 @@ void MainActivity::save_user_registry()
 
 void MainActivity::load_user_ratings()
 {
-    resources.load_user_ratings(rating_map, user_registry);
+    if (running)
+        match_engine.intercept_async(
+            [this](MatchEngineContext& context)
+            {
+                resources.load_user_ratings(context.rating_map, user_registry);
+            });
+    else
+        resources.load_user_ratings(rating_map, user_registry);
 }
 
 void MainActivity::save_user_ratings_internal(const RatingMap& rating_map)

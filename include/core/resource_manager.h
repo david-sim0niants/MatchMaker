@@ -27,6 +27,8 @@ public:
     void save_user_ratings(const RatingMap& rating_map);
 
 private:
+    static std::string make_dashboard_fn(std::string_view game_name);
+
     const GameRegistry *game_registry;
     std::filesystem::path path;
 

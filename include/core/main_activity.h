@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/match_engine.h"
-#include "core/user_info.h"
 #include "core/user_registry.h"
 #include "core/game_registry.h"
 #include "core/resource_manager.h"
@@ -14,6 +13,7 @@
 namespace matchmaker::core {
 
 class MainActivityObserver;
+struct UserInfo;
 
 class MainActivity {
 public:
@@ -75,4 +75,9 @@ public:
     virtual void on_removed_user(const User& user) = 0;
 };
 
+struct UserInfo {
+    std::string_view username;
+    std::string name, last_name;
+    std::vector<std::string> preferred_games;
+};
 }

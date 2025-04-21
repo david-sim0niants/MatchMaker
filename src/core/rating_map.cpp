@@ -47,6 +47,11 @@ void RatingMapPerGame::rem_user(const User *user)
     rating_by_user.erase(user);
 }
 
+std::vector<std::pair<const User *, Rating>> RatingMapPerGame::collect() const
+{
+    return { rating_by_user.begin(), rating_by_user.end() };
+}
+
 std::optional<Rating> RatingMap::get_rating(
         const Game *game, const User *user) const
 {

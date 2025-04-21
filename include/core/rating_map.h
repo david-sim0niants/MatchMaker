@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <unordered_map>
+#include <vector>
 
 namespace matchmaker::core {
 
@@ -27,6 +28,13 @@ public:
     {
         this->observer = observer;
     }
+
+    inline const Game *get_game() const noexcept
+    {
+        return game;
+    }
+
+    std::vector<std::pair<const User *, Rating>> collect() const;
 
 private:
     std::unordered_map<const User *, Rating> rating_by_user;

@@ -9,6 +9,8 @@
 namespace matchmaker::core {
 
 static void save_user_data(std::ostream& os, const User *user);
+static std::pair<const User *, int>
+    load_user_rating(std::istream& is, const UserRegistry& user_registry);
 
 ResourceManager::ResourceManager(const GameRegistry *game_registry, std::string_view path) :
     path(path), game_registry(game_registry)
@@ -55,7 +57,9 @@ void ResourceManager::load_user_registry(UserRegistry& user_registry,
 void ResourceManager::save_user_registry(const UserRegistry& user_registry)
 {
     std::filesystem::path user_list_path = path / user_list_fn;
-    std::ofstream user_list_file {path / user_list_fn};
+    std::ofstream user_list_file {user_list_path};
+    if (! user_list_file)
+        return; // ignore failed file open
 
     auto users = user_registry.collect();
     std::sort(users.begin(), users.end(),
@@ -75,10 +79,36 @@ void ResourceManager::load_user_ratings_for_game(
         RatingMapPerGame& rating_map_per_game,
         const UserRegistry& user_registry)
 {
+    std::string_view game_name = rating_map_per_game.get_game()->get_name();
+    std::filesystem::path dashboard_path = path / make_dashboard_fn(game_name);
+
+    std::ifstream dashboard_file {dashboard_path};
+
+    while (dashboard_file) {
+        auto [user, rating] = load_user_rating(dashboard_file, user_registry);
+        if (user)
+            rating_map_per_game.set_rating(user, static_cast<Rating>(rating));
+    }
 }
 
 void ResourceManager::save_user_ratings_for_game(const RatingMapPerGame& rating_map_per_game)
 {
+    std::string_view game_name = rating_map_per_game.get_game()->get_name();
+    std::filesystem::path dashboard_path = path / make_dashboard_fn(game_name);
+
+    std::ofstream dashboard_file {dashboard_path};
+    if (! dashboard_file)
+        return;
+
+    auto user_ratings = rating_map_per_game.collect();
+    for (auto&& [user, rating] : user_ratings) {
+        UserRatingSerializer serializer(dashboard_file);
+        serializer.write_rating(rating);
+        serializer.write_username(user->get_username());
+    }
+
+    dashboard_file.seekp(0, std::ios_base::end);
+    std::filesystem::resize_file(dashboard_path, dashboard_file.tellp());
 }
 
 void ResourceManager::load_user_ratings(RatingMap& rating_map, const UserRegistry& user_registry)
@@ -96,6 +126,19 @@ void ResourceManager::save_user_ratings(const RatingMap& rating_map)
     }
 }
 
+std::string ResourceManager::make_dashboard_fn(std::string_view game_name)
+{
+    std::string dashboard_fn;
+    dashboard_fn.reserve(
+            per_game_dashboard_fn_prefix.size() +
+            game_name.size() +
+            per_game_dashboard_fn_suffix.size());
+    dashboard_fn.append(per_game_dashboard_fn_prefix);
+    dashboard_fn.append(game_name);
+    dashboard_fn.append(per_game_dashboard_fn_suffix);
+    return dashboard_fn;
+}
+
 static void save_user_data(std::ostream& os, const User *user)
 {
     UserSerializer serializer(os);
@@ -107,6 +150,25 @@ static void save_user_data(std::ostream& os, const User *user)
         serializer.write_preferred_game(game->get_name());
 
     serializer.finish();
+}
+
+static std::pair<const User *, int>
+    load_user_rating(std::istream& is, const UserRegistry& user_registry)
+{
+    UserRatingDeserializer deserializer(is);
+    int rating = 0;
+    deserializer.read_rating(rating);
+
+    char username[User::max_username_length] {};
+    std::size_t username_length;
+
+    deserializer.read_username(username, username_length);
+
+    if (rating < 0 || username_length == 0) // yes, just ignoring bad data
+        return std::make_pair(nullptr, 0);
+
+    const User *user = user_registry.get_user_by_username({username, username_length});
+    return std::make_pair(user, static_cast<Rating>(rating));
 }
 
 }

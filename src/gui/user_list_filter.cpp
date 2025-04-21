@@ -27,7 +27,7 @@ void UserListFilter::init()
 
 void UserListFilter::on_click_filter()
 {
-    emit trigerred(pattern_text->text());
+    emit triggered(pattern_text->text());
 }
 
 }

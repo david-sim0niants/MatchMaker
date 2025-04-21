@@ -37,4 +37,28 @@ private:
     std::istringstream preferred_games_iss;
 };
 
+class UserRatingSerializer {
+public:
+    explicit UserRatingSerializer(std::ostream& os);
+
+    void write_rating(int rating);
+    void write_username(std::string_view username);
+
+private:
+    std::ostream& os;
+    bool first_preferred_game_written = false;
+};
+
+class UserRatingDeserializer {
+public:
+    explicit UserRatingDeserializer(std::istream& is);
+
+    void read_rating(int& rating);
+    void read_username(char *username, std::size_t& username_length);
+
+private:
+    std::istream& is;
+    std::istringstream preferred_games_iss;
+};
+
 }

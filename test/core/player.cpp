@@ -96,7 +96,7 @@ TEST_F(PlayerTest, PlayerThrowsExceptionWhenAttemptingToFinishPlayingWhenNotBusy
     ASSERT_THROW(timeline.run_once(), PlayerException);
 }
 
-TEST_F(PlayerTest, PlayerThrowsExceptionWhenRequestingMatchWithoutHavingPrefferedGames)
+TEST_F(PlayerTest, PlayerThrowsExceptionWhenRequestingMatchWithoutHavingPreferredGames)
 {
     user = User {
         user.get_username(), std::string(user.get_name()), std::string(user.get_lastname()), {}

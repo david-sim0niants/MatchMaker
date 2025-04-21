@@ -136,7 +136,7 @@ void UserList::init_connections()
 {
     connect(this, &UserList::init_users, model, &UserListModel::reset);
     connect(delegate, &UserListDelegate::clicked_add_user, this, &UserList::clicked_add_user);
-    connect(user_list_filter, &UserListFilter::trigerred, this, &UserList::on_filter_users);
+    connect(user_list_filter, &UserListFilter::triggered, this, &UserList::on_filter_users);
     connect(table_view, &QTableView::customContextMenuRequested, this, &UserList::on_open_context_menu);
 }
 

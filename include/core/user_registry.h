@@ -33,7 +33,7 @@ public:
         return unregister_user(user.get_username());
     }
 
-    const User *get_user_by_username(std::string_view username);
+    const User *get_user_by_username(std::string_view username) const;
 
     std::vector<const User *> collect() const;
 

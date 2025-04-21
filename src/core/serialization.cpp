@@ -75,6 +75,37 @@ void UserDeserializer::start_reading_preferred_games()
     preferred_games_iss = std::istringstream(preferred_games_line);
 }
 
+UserRatingSerializer::UserRatingSerializer(std::ostream& os) : os(os)
+{
+}
+
+void UserRatingSerializer::write_rating(int rating)
+{
+    os << rating << ' ';
+}
+
+void UserRatingSerializer::write_username(std::string_view username)
+{
+    os << username << std::endl;
+}
+
+UserRatingDeserializer::UserRatingDeserializer(std::istream& is) : is(is)
+{
+}
+
+void UserRatingDeserializer::read_rating(int& rating)
+{
+    is >> rating;
+    is.get();
+}
+
+void UserRatingDeserializer::read_username(char *username, std::size_t& username_length)
+{
+    is.getline(username, User::max_username_length);
+    username_length =
+        std::find_if_not(username, username + User::max_username_length, ::isprint) - username;
+}
+
 static void trim(std::string& str)
 {
     auto l_it = std::find_if_not(str.begin(), str.end(), ::isspace);
