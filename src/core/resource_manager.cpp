@@ -81,6 +81,21 @@ void ResourceManager::save_user_ratings_for_game(const RatingMapPerGame& rating_
 {
 }
 
+void ResourceManager::load_user_ratings(RatingMap& rating_map, const UserRegistry& user_registry)
+{
+    for (const Game *game : game_registry->get_games())
+        load_user_ratings_for_game(rating_map.get_rating_map_for_game(game), user_registry);
+}
+
+void ResourceManager::save_user_ratings(const RatingMap& rating_map)
+{
+    for (const Game *game : game_registry->get_games()) {
+        const RatingMapPerGame *rating_map_per_game = rating_map.get_rating_map_for_game(game);
+        if (rating_map_per_game)
+            save_user_ratings_for_game(*rating_map_per_game);
+    }
+}
+
 static void save_user_data(std::ostream& os, const User *user)
 {
     UserSerializer serializer(os);

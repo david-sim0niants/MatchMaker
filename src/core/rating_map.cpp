@@ -80,14 +80,18 @@ void RatingMap::rem_user(const User *user)
         rating_by_user.rem_user(user);
 }
 
-RatingMapPerGame RatingMap::borrow_rating_map_for_game(const Game *game)
+const RatingMapPerGame *RatingMap::get_rating_map_for_game(const Game *game) const
 {
-    return std::exchange(get_or_create_rating_per_game(game), RatingMapPerGame(game));
+    auto rating_by_user_it = rating_by_user_by_game.find(game);
+    if (rating_by_user_it == rating_by_user_by_game.end())
+        return nullptr;
+    else
+        return &rating_by_user_it->second;
 }
 
-void RatingMap::return_rating_map_for_game(const Game *game, RatingMapPerGame&& rating_map)
+RatingMapPerGame& RatingMap::get_rating_map_for_game(const Game *game)
 {
-    get_or_create_rating_per_game(game) = std::move(rating_map);
+    return get_or_create_rating_per_game(game);
 }
 
 void RatingMap::set_observer(RatingMapObserver *observer) noexcept

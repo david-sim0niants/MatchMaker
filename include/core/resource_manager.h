@@ -23,6 +23,9 @@ public:
             const UserRegistry& user_registry);
     void save_user_ratings_for_game(const RatingMapPerGame& rating_map_per_game);
 
+    void load_user_ratings(RatingMap& rating_map, const UserRegistry& user_registry);
+    void save_user_ratings(const RatingMap& rating_map);
+
 private:
     const GameRegistry *game_registry;
     std::filesystem::path path;

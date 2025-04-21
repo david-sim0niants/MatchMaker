@@ -37,18 +37,19 @@ public:
     }
 
     void save_user_ratings();
-    void save_user_ratings_for_game(std::string_view game);
+    void save_user_ratings_for_game(std::string_view game_name);
+    void save_user_ratings_for_game(const Game *game);
 
 private:
     void run();
+    void add_user_to_match_engine(const User& user);
 
     void load_user_registry();
     void save_user_registry();
 
-    void add_user_to_match_engine(const User& user);
-
     void load_user_ratings();
-    void save_user_ratings_for_game_internal(std::string_view game);
+    void save_user_ratings_internal(const RatingMap& rating_map);
+    void save_user_ratings_for_game_internal(const Game *game, const RatingMap& rating_map);
 
     std::pair<const User *, UserRegistryError> register_user(UserInfo&& user_info);
     UserRegistryError unregister_user(const User& user);

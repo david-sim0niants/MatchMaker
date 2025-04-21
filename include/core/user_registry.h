@@ -33,6 +33,8 @@ public:
         return unregister_user(user.get_username());
     }
 
+    const User *get_user_by_username(std::string_view username);
+
     std::vector<const User *> collect() const;
 
     static Error validate_user_info(

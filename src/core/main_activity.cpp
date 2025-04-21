@@ -85,18 +85,48 @@ void MainActivity::rem_user(const User& user)
 
 void MainActivity::save_user_ratings()
 {
-    for (auto *game : list_games())
-        save_user_ratings_for_game_internal(game->get_name());
+    if (running)
+        match_engine.intercept(
+                [this](MatchEngineContext& context)
+                {
+                    save_user_ratings_internal(context.rating_map);
+                });
+    else
+        save_user_ratings_internal(rating_map);
 }
 
-void MainActivity::save_user_ratings_for_game(std::string_view game)
+void MainActivity::save_user_ratings_for_game(std::string_view game_name)
 {
-    save_user_ratings_for_game_internal(game);
+    const Game *game = game_registry.get_game_by_name(game_name);
+    if (game)
+        save_user_ratings_for_game(game);
+}
+
+void MainActivity::save_user_ratings_for_game(const Game *game)
+{
+    if (running)
+        match_engine.intercept(
+            [this, game](MatchEngineContext& context)
+            {
+                save_user_ratings_for_game_internal(game, context.rating_map);
+            });
+    else
+        save_user_ratings_for_game_internal(game, this->rating_map);
 }
 
 void MainActivity::run()
 {
     rating_map = match_engine.run(std::exchange(rating_map, {}));
+}
+
+void MainActivity::add_user_to_match_engine(const User& user)
+{
+    match_engine.add_user(user,
+        [this] (auto&, const User& user)
+        {
+            if (observer)
+                observer->on_added_user(user);
+        });
 }
 
 void MainActivity::load_user_registry()
@@ -114,22 +144,22 @@ void MainActivity::save_user_registry()
     resources.save_user_registry(user_registry);
 }
 
-void MainActivity::add_user_to_match_engine(const User& user)
-{
-    match_engine.add_user(user,
-        [this] (auto&, const User& user)
-        {
-            if (observer)
-                observer->on_added_user(user);
-        });
-}
-
 void MainActivity::load_user_ratings()
 {
+    resources.load_user_ratings(rating_map, user_registry);
 }
 
-void MainActivity::save_user_ratings_for_game_internal(std::string_view game)
+void MainActivity::save_user_ratings_internal(const RatingMap& rating_map)
 {
+    resources.save_user_ratings(rating_map);
+}
+
+void MainActivity::save_user_ratings_for_game_internal(
+        const Game *game, const RatingMap& rating_map)
+{
+    const RatingMapPerGame *rating_map_per_game = rating_map.get_rating_map_for_game(game);
+    if (rating_map_per_game)
+        resources.save_user_ratings_for_game(*rating_map_per_game);
 }
 
 std::pair<const User *, UserRegistryError> MainActivity::register_user(UserInfo&& user_info)

@@ -44,8 +44,8 @@ public:
 
     void rem_user(const User *user);
 
-    RatingMapPerGame borrow_rating_map_for_game(const Game *game);
-    void return_rating_map_for_game(const Game *game, RatingMapPerGame&& rating_map);
+    const RatingMapPerGame *get_rating_map_for_game(const Game *game) const;
+    RatingMapPerGame& get_rating_map_for_game(const Game *game);
 
     void set_observer(RatingMapObserver *observer) noexcept;
 
