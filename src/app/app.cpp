@@ -7,16 +7,47 @@
 #include "core/main_activity.h"
 #include "gui/mainwindow.h"
 
+#include <cstdlib>
+#include <iostream>
+#include <filesystem>
+
 namespace matchmaker::app {
 
+namespace fs = std::filesystem;
+
+static std::optional<int> get_prng_seed()
+{
+    const char *seed = getenv("SEED");
+    try {
+        if (seed)
+            return std::atoi(seed);
+    } catch (...) {}
+    return std::nullopt;
+}
+
 App::App(int argc, char *argv[]) :
-    argc(argc), argv(argv),
-    main_activity(core::GameRegistry(argv[0], game_infos, std::size(game_infos)), "/tmp/")
+    argc(argc), argv(argv)
 {
 }
 
 int App::exec()
 {
+    std::string_view games_path = argv[0];
+
+    fs::path data_path = fs::path(argc > 1 ? argv[1] : ".") / "matchmaker_data";
+    if (! fs::exists(data_path) && ! fs::create_directory(data_path)) {
+        std::cerr << "Failed to create a data directory";
+        return EXIT_FAILURE;
+    }
+
+    std::string data_path_str = data_path.string();
+
+    auto prng_seed = get_prng_seed();
+    misc::PRNG prng = prng_seed ? misc::PRNG(*prng_seed) : misc::PRNG();
+
+    core::MainActivity main_activity {
+        prng, game_infos, std::size(game_infos), games_path, data_path_str };
+
     ConsolePlayerObserver player_observer;
     ConsoleUserRatingObserver rating_observer;
 

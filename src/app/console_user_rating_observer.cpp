@@ -6,7 +6,7 @@
 
 namespace matchmaker::app {
 
-void ConsoleUserRatingObserver::notify_rating_change(
+void ConsoleUserRatingObserver::on_rating_change(
         const core::Game& game, const core::User& user, int rating)
 {
     misc::print_to(std::cout,

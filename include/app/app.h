@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/main_activity.h"
-
 #include <QApplication>
 
 namespace matchmaker::app {
@@ -15,7 +13,6 @@ public:
 private:
     int argc;
     char **argv;
-    core::MainActivity main_activity;
 };
 
 }

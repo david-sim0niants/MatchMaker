@@ -2,20 +2,24 @@
 
 namespace matchmaker::core {
 
-MainActivity::MainActivity(GameRegistry&& game_registry, std::string_view data_path)
-    : game_registry(std::move(game_registry)), data_path(data_path)
+MainActivity::MainActivity(
+        misc::PRNG& prng,
+        ExecutableGameInfo *game_infos, std::size_t nr_game_infos,
+        std::string_view game_path, std::string_view data_path) :
+    game_registry(game_path, game_infos, nr_game_infos),
+    resources(&game_registry, data_path),
+    match_engine(prng, cv_waiter)
 {
 }
 
 void MainActivity::start()
 {
+    load_user_registry();
     load_user_ratings();
 
     match_engine.keep_alive();
     thread = std::thread(&MainActivity::run, this);
     running = true;
-
-    load_users();
 }
 
 void MainActivity::stop()
@@ -45,9 +49,32 @@ void MainActivity::set_player_observer(PlayerObserver *player_observer)
     match_engine.set_player_observer(player_observer);
 }
 
-void MainActivity::save_user_ratings_for_game(std::string_view game)
+void MainActivity::set_observer(MainActivityObserver *observer)
 {
-    save_user_ratings_for_game_internal(game);
+    if (running)
+        match_engine.intercept([this, observer](auto&&...) { this->observer = observer; });
+    else
+        this->observer = observer;
+}
+
+UserRegistryError MainActivity::add_user(UserInfo&& user_info)
+{
+    auto [user, error] = register_user(std::move(user_info));
+    if (error == UserRegistry::ErrorNone)
+        add_user_to_match_engine(*user);
+    return error;
+}
+
+void MainActivity::rem_user(const User& user)
+{
+    match_engine.rem_user(user,
+        [this] (MatchEngineContext& context, const User& user)
+        {
+            context.rating_map.rem_user(&user);
+            if (observer)
+                observer->on_removed_user(user);
+            unregister_user(user);
+        });
 }
 
 void MainActivity::save_user_ratings()
@@ -56,17 +83,39 @@ void MainActivity::save_user_ratings()
         save_user_ratings_for_game_internal(game->get_name());
 }
 
+void MainActivity::save_user_ratings_for_game(std::string_view game)
+{
+    save_user_ratings_for_game_internal(game);
+}
+
 void MainActivity::run()
 {
     rating_map = match_engine.run(std::exchange(rating_map, {}));
 }
 
-void MainActivity::load_users()
+void MainActivity::load_user_registry()
 {
+    resources.load_user_registry(user_registry,
+        [this](const User *user)
+        {
+            if (user)
+                add_user_to_match_engine(*user);
+        });
 }
 
-void MainActivity::save_users()
+void MainActivity::save_user_registry()
 {
+    resources.save_user_registry(user_registry);
+}
+
+void MainActivity::add_user_to_match_engine(const User& user)
+{
+    match_engine.add_user(user,
+        [this] (auto&, const User& user)
+        {
+            if (observer)
+                observer->on_added_user(user);
+        });
 }
 
 void MainActivity::load_user_ratings()
@@ -75,6 +124,7 @@ void MainActivity::load_user_ratings()
 
 void MainActivity::save_user_ratings_for_game_internal(std::string_view game)
 {
+    // resources.save_user_ratings_for_game(game, rating_map);
 }
 
 std::pair<const User *, UserRegistryError> MainActivity::register_user(UserInfo&& user_info)

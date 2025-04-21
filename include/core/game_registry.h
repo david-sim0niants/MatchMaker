@@ -14,7 +14,7 @@ namespace matchmaker::core {
 class GameRegistry {
 public:
     explicit GameRegistry(
-            const char *exe_path,
+            std::string_view games_path,
             ExecutableGameInfo *exe_game_infos,
             std::size_t nr_exe_game_infos);
 

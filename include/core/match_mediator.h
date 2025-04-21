@@ -21,7 +21,7 @@ public:
     Timeline& get_timeline() const noexcept override;
 
 private:
-    Rating get_player_rating_for_game(const Game& game, const Player& player);
+    Rating get_player_rating_for_game(const Game& game, const Player& player) const;
     void increment_player_rating_for_game(const Game& game, const Player& player);
 
     void add_match(std::unique_ptr<Match>&& match);

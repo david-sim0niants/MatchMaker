@@ -37,14 +37,15 @@ Timeline& MatchMediator::get_timeline() const noexcept
     return timeline;
 }
 
-Rating MatchMediator::get_player_rating_for_game(const Game& game, const Player& player)
+Rating MatchMediator::get_player_rating_for_game(const Game& game, const Player& player) const
 {
-    return rating_map.get_rating(game, player.get_user());
+    return static_cast<const RatingMap&>(rating_map).
+        get_rating(&game, &player.get_user()).value_or(0);
 }
 
 void MatchMediator::increment_player_rating_for_game(const Game& game, const Player& player)
 {
-    return rating_map.change_rating(game, player.get_user(), Rating(+1));
+    return rating_map.change_rating(&game, &player.get_user(), Rating(+1));
 }
 
 void MatchMediator::add_match(std::unique_ptr<Match>&& match)

@@ -6,15 +6,15 @@
 namespace matchmaker::core {
 
 GameRegistry::GameRegistry(
-        const char *exe_path,
+        std::string_view games_path_sv,
         ExecutableGameInfo *game_infos,
         std::size_t nr_game_infos)
 {
     exe_games.reserve(nr_game_infos);
+    std::filesystem::path games_path {games_path_sv};
 
     for (std::size_t i = 0; i < nr_game_infos; ++i) {
-        const auto exe_game_path =
-            std::filesystem::path(exe_path).parent_path() / game_infos[i].comm;
+        const auto exe_game_path = games_path.parent_path() / game_infos[i].comm;
 
         if (! std::filesystem::exists(exe_game_path))
             throw GameRegistryException(

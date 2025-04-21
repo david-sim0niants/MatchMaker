@@ -7,6 +7,7 @@ namespace matchmaker::app {
 
 class Mediator :
     public core::RatingMapObserver,
+    public core::MainActivityObserver,
     public gui::AddUserDialogEndpoint,
     public gui::MainWindowEndpoint {
 
@@ -14,10 +15,14 @@ public:
     explicit Mediator(core::MainActivity& main_activity);
 
 private:
-    void notify_rating_change(
+    void on_rating_change(
             const core::Game& game,
             const core::User& user,
             core::Rating rating) override;
+
+    void on_added_user(const core::User& user) override;
+
+    void on_removed_user(const core::User& user) override;
 
     void start(gui::MainWindowControl& control) override;
     void stop() override;

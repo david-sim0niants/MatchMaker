@@ -8,21 +8,7 @@ Mediator::Mediator(core::MainActivity& main_activity) :
 {
 }
 
-void Mediator::start(gui::MainWindowControl& control)
-{
-    this->control = &control;
-    main_activity.set_rating_map_observer(this);
-    main_activity.start();
-}
-
-void Mediator::stop()
-{
-    main_activity.stop();
-    main_activity.set_rating_map_observer(nullptr);
-    this->control = nullptr;
-}
-
-void Mediator::notify_rating_change(
+void Mediator::on_rating_change(
         const core::Game& game,
         const core::User& user,
         core::Rating rating)
@@ -31,6 +17,31 @@ void Mediator::notify_rating_change(
             QString::fromStdString(game.get_name()),
             make_user_descriptor(&user),
             rating);
+}
+
+void Mediator::on_added_user(const core::User& user)
+{
+    control->add_user(make_user_descriptor(&user));
+}
+
+void Mediator::on_removed_user(const core::User& user)
+{
+}
+
+void Mediator::start(gui::MainWindowControl& control)
+{
+    this->control = &control;
+    main_activity.set_rating_map_observer(this);
+    main_activity.set_observer(this);
+    main_activity.start();
+}
+
+void Mediator::stop()
+{
+    main_activity.stop();
+    main_activity.set_observer(nullptr);
+    main_activity.set_rating_map_observer(nullptr);
+    this->control = nullptr;
 }
 
 void Mediator::save_game_ratings_to_file(const QString& game)
@@ -66,11 +77,7 @@ gui::AddUserDialogError Mediator::add_user(
     for (auto&& game : preferred_games)
         user_info.preferred_games.emplace_back(game.toStdString());
 
-    return main_activity.add_user(std::move(user_info),
-            [this](const core::User& user)
-            {
-                control->add_user(make_user_descriptor(&user));
-            });
+    return main_activity.add_user(std::move(user_info));
 }
 
 void Mediator::rem_user(gui::UserDescriptor ud)
