@@ -3,6 +3,7 @@
 #include "user.h"
 
 #include <unordered_map>
+#include <vector>
 
 namespace matchmaker::core {
 
@@ -31,6 +32,8 @@ public:
     {
         return unregister_user(user.get_username());
     }
+
+    std::vector<const User *> collect() const;
 
     static Error validate_user_info(
             std::string_view username,

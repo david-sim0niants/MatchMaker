@@ -45,6 +45,15 @@ UserRegistryError UserRegistry::unregister_user(std::string_view username)
     return ErrorNone;
 }
 
+std::vector<const User *> UserRegistry::collect() const
+{
+    std::vector<const User *> collection;
+    collection.reserve(users.size());
+    for (auto&& [_, user] : users)
+        collection.emplace_back(user.get());
+    return std::move(collection);
+}
+
 UserRegistryError UserRegistry::validate_user_info(
         std::string_view username,
         std::string_view name,

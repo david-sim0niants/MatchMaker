@@ -30,6 +30,12 @@ void MainActivity::stop()
     if (thread.joinable())
         thread.join();
     running = false;
+
+    save_user_ratings();
+    save_user_registry();
+
+    user_registry = UserRegistry();
+    rating_map = RatingMap();
 }
 
 void MainActivity::set_rating_map_observer(RatingMapObserver *rating_map_observer)
@@ -96,7 +102,7 @@ void MainActivity::run()
 void MainActivity::load_user_registry()
 {
     resources.load_user_registry(user_registry,
-        [this](const User *user)
+        [this](const User *user, UserRegistryError error)
         {
             if (user)
                 add_user_to_match_engine(*user);
@@ -124,7 +130,6 @@ void MainActivity::load_user_ratings()
 
 void MainActivity::save_user_ratings_for_game_internal(std::string_view game)
 {
-    // resources.save_user_ratings_for_game(game, rating_map);
 }
 
 std::pair<const User *, UserRegistryError> MainActivity::register_user(UserInfo&& user_info)
