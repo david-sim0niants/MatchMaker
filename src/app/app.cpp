@@ -5,7 +5,7 @@
 #include "app/console_user_rating_observer.h"
 
 #include "core/main_activity.h"
-#include "gui/mainwindow.h"
+#include "gui/main_window.h"
 
 #include <cstdlib>
 #include <iostream>

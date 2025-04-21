@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/main_activity.h"
-#include "gui/mainwindow.h"
+#include "gui/main_window.h"
 
 namespace matchmaker::app {
 
