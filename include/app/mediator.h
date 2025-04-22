@@ -20,9 +20,9 @@ private:
             const core::User& user,
             core::Rating rating) override;
 
-    void on_added_user(const core::User& user) override;
+    void on_added_user(const core::User *user) override;
 
-    void on_removed_user(const core::User& user) override;
+    void on_removed_user(const core::User *user) override;
 
     void start(gui::MainWindowControl& control) override;
     void stop() override;

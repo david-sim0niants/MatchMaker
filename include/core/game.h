@@ -18,8 +18,8 @@ public:
     virtual ~Game() = default;
 
     virtual std::unique_ptr<GameInstance> launch(
-            const Player& player_a,
-            const Player& player_b,
+            const Player *player_a,
+            const Player *player_b,
             GameInstanceObserver *observer = nullptr) const = 0;
 
     inline const std::string& get_name() const noexcept

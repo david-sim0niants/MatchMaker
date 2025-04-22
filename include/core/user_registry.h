@@ -28,9 +28,9 @@ public:
             std::vector<const Game *>&& preferred_games);
     Error unregister_user(std::string_view username);
 
-    inline Error unregister_user(const core::User& user) noexcept
+    inline Error unregister_user(const core::User *user) noexcept
     {
-        return unregister_user(user.get_username());
+        return unregister_user(user->get_username());
     }
 
     const User *get_user_by_username(std::string_view username) const;

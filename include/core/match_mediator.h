@@ -15,14 +15,14 @@ class MatchMediator : public PlayerEndpoint, public MatchEndpoint {
 public:
     explicit MatchMediator(RatingMap& rating_map, Timeline& timeline);
 
-    void request_match(Player& player, const Game& game) override;
-    void withdraw_match(const Player& player) override;
+    void request_match(Player *player, const Game *game) override;
+    void withdraw_match(const Player *player) override;
     void notify_match_finished(Match& match, Player *winner) override;
     Timeline& get_timeline() const noexcept override;
 
 private:
-    Rating get_player_rating_for_game(const Game& game, const Player& player) const;
-    void increment_player_rating_for_game(const Game& game, const Player& player);
+    Rating get_player_rating_for_game(const Game *game, const Player *player) const;
+    void increment_player_rating_for_game(const Game *game, const Player *player);
 
     void add_match(std::unique_ptr<Match>&& match);
     void remove_match(const Match& match);

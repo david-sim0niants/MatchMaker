@@ -29,12 +29,12 @@ protected:
     NiceMock<mock::Waiter> mock_waiter;
     NiceMock<mock::Game> mock_game;
     NiceMock<mock::PlayerEndpoint> player_endpoint;
-    Match mock_match {mock_game};
+    Match mock_match {&mock_game};
 
     User user {"johndoe", "John", "Doe", {&mock_game}};
     Timeline timeline {mock_waiter, 0ms};
 
-    Player player {user, player_endpoint, prng};
+    Player player {&user, player_endpoint, prng};
 };
 
 TEST_F(PlayerTest, PlayerStartsFree)

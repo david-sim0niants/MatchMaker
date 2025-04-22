@@ -48,25 +48,25 @@ private:
         Rating rating;
         std::unique_ptr<Match> inactive_match;
 
-        inline const Game& get_game()
+        inline const Game *get_game()
         {
             return inactive_match->get_game();
         }
 
-        MatchRequest(Player& player, Rating rating, const Game& game) :
+        MatchRequest(Player *player, Rating rating, const Game *game) :
             rating(rating), inactive_match(std::make_unique<Match>(game))
         {
-            inactive_match->add_player(player);
+            inactive_match->add_player(*player);
         }
     };
 
 public:
     std::unique_ptr<Match>
-        find_or_request_match(Player& player, Rating player_rating, const Game& game);
+        find_or_request_match(Player *player, Rating player_rating, const Game *game);
 
-    void withdraw_match(const Player& player);
+    void withdraw_match(const Player *player);
 
-    inline bool has_arranged_match_for(const Player& player) const
+    inline bool has_arranged_match_for(const Player *player) const
     {
         return get_match_request(player) != nullptr;
     }
@@ -75,16 +75,16 @@ public:
                            higher_rating_diff_thresh = 3;
 
 private:
-    MatchRequest * get_match_request(const Player& player);
-    const MatchRequest * get_match_request(const Player& player) const;
+    MatchRequest * get_match_request(const Player *player);
+    const MatchRequest * get_match_request(const Player *player) const;
 
 
-    void arrange_new_match(Player& player, Rating rating, const Game& game);
+    void arrange_new_match(Player *player, Rating rating, const Game *game);
     std::unique_ptr<Match>
-        release_match(Player& player, const Game& game, MatchByRatingIt match_it);
+        release_match(Player *player, const Game *game, MatchByRatingIt match_it);
 
-    void remove_match(const Player& player);
-    MatchRequest remove_match_request(const Player& player);
+    void remove_match(const Player *player);
+    MatchRequest remove_match_request(const Player *player);
 
     static MatchByRatingIt try_find_fairest_match(Rating rating, MatchByRating& match_by_rating);
 

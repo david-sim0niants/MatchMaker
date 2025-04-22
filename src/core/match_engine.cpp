@@ -27,23 +27,23 @@ void MatchEngine::let_die()
     timeline.post([this]{ Timeline::cancel(sentinel_event); });
 }
 
-Player& MatchEngine::new_player_for(const User& user)
+Player& MatchEngine::new_player_for(const User *user)
 {
-    auto player_it = player_by_user.find(&user);
+    auto player_it = player_by_user.find(user);
     if (player_it != player_by_user.end())
         throw MatchEngineException(misc::stringify(
-                "user '", user.get_username(), "' already playing"));
+                "user '", user->get_username(), "' already playing"));
 
-    return *(player_by_user[&user] =
+    return *(player_by_user[user] =
              std::make_unique<Player>(user, mediator, prng, player_observer));
 }
 
-std::unique_ptr<Player> MatchEngine::del_player_of(const User& user)
+std::unique_ptr<Player> MatchEngine::del_player_of(const User *user)
 {
-    auto player_it = player_by_user.find(&user);
+    auto player_it = player_by_user.find(user);
     if (player_it == player_by_user.end())
         throw MatchEngineException(misc::stringify(
-                    "user '", user.get_username(), "' was not playing"));
+                    "user '", user->get_username(), "' was not playing"));
     auto player = std::move(player_it->second);
     player_by_user.erase(player_it);
     return player;

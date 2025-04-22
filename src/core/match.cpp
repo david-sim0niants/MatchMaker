@@ -4,7 +4,7 @@
 
 namespace matchmaker::core {
 
-Match::Match(const Game& game) : game(game)
+Match::Match(const Game *game) : game(game)
 {
 }
 
@@ -24,7 +24,7 @@ void Match::start(MatchEndpoint& endpoint)
         throw MatchException("the match has already started");
 
     this->endpoint = &endpoint;
-    game_instance = game.launch(*player_a, *player_b, this);
+    game_instance = game->launch(player_a, player_b, this);
 
     player_a->play(*this);
     player_b->play(*this);

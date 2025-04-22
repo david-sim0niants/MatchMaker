@@ -17,10 +17,10 @@ public:
         Created, Free, Waiting, Busy
     };
 
-    Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG& prng,
+    Player(const User *user, PlayerEndpoint& endpoint, misc::PRNG& prng,
            PlayerObserver *observer = nullptr);
 
-    inline const User& get_user() const noexcept
+    inline const User *get_user() const noexcept
     {
         return user;
     }
@@ -53,7 +53,7 @@ private:
     void expect_state(State state);
     void change_state(State state);
 
-    const User& user;
+    const User *user;
     PlayerEndpoint& endpoint;
     misc::PRNG& prng;
 
@@ -66,8 +66,8 @@ private:
 
 class PlayerEndpoint {
 public:
-    virtual void request_match(Player& player, const Game& game) = 0;
-    virtual void withdraw_match(const Player& player) = 0;
+    virtual void request_match(Player *player, const Game *game) = 0;
+    virtual void withdraw_match(const Player *player) = 0;
 };
 
 class PlayerObserver {

@@ -11,8 +11,8 @@ public:
     ExecutableGame(std::string&& name, std::string&& comm, std::string&& path);
 
     std::unique_ptr<GameInstance> launch(
-            const Player& player_a,
-            const Player& player_b,
+            const Player *player_a,
+            const Player *player_b,
             GameInstanceObserver *observer = nullptr) const override;
 private:
     std::string comm;

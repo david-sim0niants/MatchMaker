@@ -87,12 +87,12 @@ void Mediator::on_rating_change(
             rating);
 }
 
-void Mediator::on_added_user(const core::User& user)
+void Mediator::on_added_user(const core::User *user)
 {
-    control->add_user(make_user_descriptor(&user));
+    control->add_user(make_user_descriptor(user));
 }
 
-void Mediator::on_removed_user(const core::User& user)
+void Mediator::on_removed_user(const core::User *user)
 {
 }
 
@@ -151,7 +151,7 @@ gui::AddUserDialogError Mediator::add_user(
 void Mediator::rem_user(gui::UserDescriptor ud)
 {
     const core::User *user = obtain_user_from_descriptor(ud);
-    main_activity.rem_user(*user);
+    main_activity.rem_user(user);
 }
 
 QStringList Mediator::get_games() const

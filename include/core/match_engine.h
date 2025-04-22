@@ -35,9 +35,9 @@ public:
     void let_die();
 
     template<typename F = void (*)(Context&, const User&)>
-    void add_user(const User& user, F on_add = [](auto&&...){})
+    void add_user(const User *user, F on_add = [](auto&&...){})
     {
-        timeline.post([this, &user, on_add]
+        timeline.post([this, user, on_add]
             {
                 new_player_for(user).init();
                 on_add(context, user);
@@ -45,9 +45,9 @@ public:
     }
 
     template<typename F = void (*)(Context&, const User&)>
-    void rem_user(const User& user, F on_rem = [](auto&&...){})
+    void rem_user(const User *user, F on_rem = [](auto&&...){})
     {
-        timeline.post([this, &user, on_rem]
+        timeline.post([this, user, on_rem]
             {
                 del_player_of(user)->deinit();
                 on_rem(context, user);
@@ -93,8 +93,8 @@ public:
     }
 
 private:
-    Player& new_player_for(const User& user);
-    std::unique_ptr<Player> del_player_of(const User& user);
+    Player& new_player_for(const User *user);
+    std::unique_ptr<Player> del_player_of(const User *user);
     void del_all_players();
 
     misc::PRNG& prng;

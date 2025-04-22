@@ -25,7 +25,7 @@ public:
     void stop();
 
     UserRegistryError add_user(UserInfo&& user_info);
-    void rem_user(const User& user);
+    void rem_user(const User *user);
 
     void set_rating_map_observer(RatingMapObserver *rating_map_observer);
     void set_player_observer(PlayerObserver *player_observer);
@@ -41,8 +41,7 @@ public:
     void save_user_ratings_for_game(const Game *game);
 
 private:
-    void run();
-    void add_user_to_match_engine(const User& user);
+    void add_user_to_match_engine(const User *user);
 
     void load_user_registry();
     void save_user_registry();
@@ -52,7 +51,7 @@ private:
     void save_user_ratings_for_game_internal(const Game *game, const RatingMap& rating_map);
 
     std::pair<const User *, UserRegistryError> register_user(UserInfo&& user_info);
-    UserRegistryError unregister_user(const User& user);
+    UserRegistryError unregister_user(const User *user);
 
     CVWaiter cv_waiter;
 
@@ -71,8 +70,8 @@ private:
 
 class MainActivityObserver {
 public:
-    virtual void on_added_user(const User& user) = 0;
-    virtual void on_removed_user(const User& user) = 0;
+    virtual void on_added_user(const User *user) = 0;
+    virtual void on_removed_user(const User *user) = 0;
 };
 
 struct UserInfo {

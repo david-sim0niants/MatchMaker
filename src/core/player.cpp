@@ -7,7 +7,7 @@
 
 namespace matchmaker::core {
 
-Player::Player(const User& user, PlayerEndpoint& endpoint, misc::PRNG& prng,
+Player::Player(const User *user, PlayerEndpoint& endpoint, misc::PRNG& prng,
                PlayerObserver *observer) :
     user(user),
     endpoint(endpoint),
@@ -34,7 +34,7 @@ void Player::deinit()
         leave_match();
 
     if (state == State::Waiting)
-        endpoint.withdraw_match(*this);
+        endpoint.withdraw_match(this);
 
     cancel_awaiting_events();
     change_state(State::Created);
@@ -84,7 +84,7 @@ void Player::rest()
 
 void Player::withdraw_match_and_rest()
 {
-    endpoint.withdraw_match(*this);
+    endpoint.withdraw_match(this);
     rest();
 }
 
@@ -101,13 +101,13 @@ void Player::select_game_and_request_match_and_wait()
 
 void Player::select_game_and_request_match()
 {
-    auto& preferred_games = user.get_preferred_games();
+    auto& preferred_games = user->get_preferred_games();
     if (preferred_games.empty())
         throw PlayerException( misc::stringify(
-                    "the user '", user.get_username(), "' has no preferred games"));
+                    "the user '", user->get_username(), "' has no preferred games"));
 
     std::size_t game_idx = prng(std::size_t(), preferred_games.size() - 1);
-    endpoint.request_match(*this, *preferred_games[game_idx]);
+    endpoint.request_match(this, preferred_games[game_idx]);
 }
 
 void Player::leave_match()

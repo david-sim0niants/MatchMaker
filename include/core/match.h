@@ -10,9 +10,9 @@ class MatchEndpoint;
 
 class Match : GameInstanceObserver {
 public:
-    explicit Match(const Game& game);
+    explicit Match(const Game *game);
 
-    inline const Game& get_game() const noexcept
+    inline const Game *get_game() const noexcept
     {
         return game;
     }
@@ -37,15 +37,13 @@ public:
     void start(MatchEndpoint& endpoint);
     void stop(Player *leaving_player = nullptr);
 
-    void abort_by(Player& player);
-
 private:
     void finish(GameWinner winner);
     void finish(Player *winner_player);
     void finalize();
     void notify_finished(GameWinner winner) override;
 
-    const Game& game;
+    const Game *game;
     Player *player_a = nullptr, *player_b = nullptr;
     MatchEndpoint *endpoint;
     std::unique_ptr<GameInstance> game_instance = nullptr;

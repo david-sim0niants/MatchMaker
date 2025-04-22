@@ -70,16 +70,16 @@ UserRegistryError MainActivity::add_user(UserInfo&& user_info)
 {
     auto [user, error] = register_user(std::move(user_info));
     if (error == UserRegistry::ErrorNone)
-        add_user_to_match_engine(*user);
+        add_user_to_match_engine(user);
     return error;
 }
 
-void MainActivity::rem_user(const User& user)
+void MainActivity::rem_user(const User *user)
 {
     match_engine.rem_user(user,
-        [this] (MatchEngineContext& context, const User& user)
+        [this] (MatchEngineContext& context, const User *user)
         {
-            context.rating_map.rem_user(&user);
+            context.rating_map.rem_user(user);
             if (observer)
                 observer->on_removed_user(user);
             unregister_user(user);
@@ -117,10 +117,10 @@ void MainActivity::save_user_ratings_for_game(const Game *game)
         save_user_ratings_for_game_internal(game, this->rating_map);
 }
 
-void MainActivity::add_user_to_match_engine(const User& user)
+void MainActivity::add_user_to_match_engine(const User *user)
 {
     match_engine.add_user(user,
-        [this] (auto&, const User& user)
+        [this] (auto&, const User *user)
         {
             if (observer)
                 observer->on_added_user(user);
@@ -133,7 +133,7 @@ void MainActivity::load_user_registry()
         [this](const User *user, UserRegistryError error)
         {
             if (user)
-                add_user_to_match_engine(*user);
+                add_user_to_match_engine(user);
         });
 }
 
@@ -181,7 +181,7 @@ std::pair<const User *, UserRegistryError> MainActivity::register_user(UserInfo&
             std::move(preferred_games));
 }
 
-UserRegistryError MainActivity::unregister_user(const User& user)
+UserRegistryError MainActivity::unregister_user(const User *user)
 {
     return user_registry.unregister_user(user);
 }

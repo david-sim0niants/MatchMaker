@@ -8,7 +8,7 @@ MatchMediator::MatchMediator(RatingMap& rating_map, Timeline& timeline) :
 {
 }
 
-void MatchMediator::request_match(Player& player, const Game& game)
+void MatchMediator::request_match(Player *player, const Game *game)
 {
     Rating rating = get_player_rating_for_game(game, player);
     auto match = match_arranger.find_or_request_match(player, rating, game);
@@ -18,17 +18,15 @@ void MatchMediator::request_match(Player& player, const Game& game)
     }
 }
 
-void MatchMediator::withdraw_match(const Player& player)
+void MatchMediator::withdraw_match(const Player *player)
 {
     match_arranger.withdraw_match(player);
 }
 
 void MatchMediator::notify_match_finished(Match& match, Player *winner)
 {
-    if (winner) {
-        const Game& game = match.get_game();
-        increment_player_rating_for_game(game, *winner);
-    }
+    if (winner)
+        increment_player_rating_for_game(match.get_game(), winner);
     remove_match(match);
 }
 
@@ -37,15 +35,15 @@ Timeline& MatchMediator::get_timeline() const noexcept
     return timeline;
 }
 
-Rating MatchMediator::get_player_rating_for_game(const Game& game, const Player& player) const
+Rating MatchMediator::get_player_rating_for_game(const Game *game, const Player *player) const
 {
     return static_cast<const RatingMap&>(rating_map).
-        get_rating(&game, &player.get_user()).value_or(0);
+        get_rating(game, player->get_user()).value_or(0);
 }
 
-void MatchMediator::increment_player_rating_for_game(const Game& game, const Player& player)
+void MatchMediator::increment_player_rating_for_game(const Game *game, const Player *player)
 {
-    return rating_map.change_rating(&game, &player.get_user(), Rating(+1));
+    return rating_map.change_rating(game, player->get_user(), Rating(+1));
 }
 
 void MatchMediator::add_match(std::unique_ptr<Match>&& match)
